@@ -1,0 +1,43 @@
+{
+  "short_name": "Saraswati School",
+  "name": "Saraswati School Management System 2025",
+  "description": "Complete school management solution with bilingual support (Hindi/English)",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#667eea",
+  "background_color": "#ffffff",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en",
+  "categories": ["education", "productivity", "utilities"],
+  "shortcuts": [
+    {
+      "name": "Admin Login",
+      "short_name": "Admin",
+      "description": "Access administrator dashboard",
+      "url": "/admin/login",
+      "icons": [{ "src": "/favicon.ico", "sizes": "32x32" }]
+    },
+    {
+      "name": "Parent Portal", 
+      "short_name": "Parent",
+      "description": "View student progress and pay fees",
+      "url": "/parent/login",
+      "icons": [{ "src": "/favicon.ico", "sizes": "32x32" }]
+    },
+    {
+      "name": "Teacher Portal",
+      "short_name": "Teacher", 
+      "description": "Manage classes and student records",
+      "url": "/teacher/login",
+      "icons": [{ "src": "/favicon.ico", "sizes": "32x32" }]
+    }
+  ]
+} 

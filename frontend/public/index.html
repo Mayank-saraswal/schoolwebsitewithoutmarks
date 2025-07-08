@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#000000" />
+      <meta name="description" content="Saraswati School Management System - Bilingual Education Platform supporting Hindi and English medium students with comprehensive fee management, academic records, and parent portal." />
+  <meta name="keywords" content="school management, education, hindi medium, english medium, student portal, parent portal, fee management" />
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+      <meta property="og:title" content="Saraswati School Management System 2025" />
+  <meta property="og:description" content="Complete school management solution with bilingual support" />
+  
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+      <meta property="twitter:title" content="Saraswati School Management System 2025" />
+  <meta property="twitter:description" content="Complete school management solution with bilingual support" />
+  
+  <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+  <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+  
+  <!-- Google Fonts for better typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Devanagari:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+      <title>Saraswati School Management System 2025</title>
+</head>
+<body>
+  <noscript>
+    <div style="padding: 20px; text-align: center; font-family: Arial, sans-serif;">
+      <h2>🏫 Saraswati School Management System</h2>
+      <p><strong>JavaScript Required </strong></p>
+      <p>You need to enable JavaScript to run this app.<br>
+      
+      <p>Please enable JavaScript in your browser settings.<br>
+        
+    </div>
+  </noscript>
+  
+  <!-- Loading spinner -->
+  <div id="initial-loader" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    color: white;
+    font-family: 'Inter', sans-serif;
+  ">
+    <div style="
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(255,255,255,0.3);
+      border-top: 4px solid white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    "></div>
+          <h2 style="margin: 0; font-weight: 600;">🏫 Saraswati School</h2>
+    <p style="margin: 10px 0 0 0; opacity: 0.9;">Loading... / लोड हो रहा है...</p>
+    
+    <style>
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
+  </div>
+  
+  <div id="root"></div>
+  
+  <script>
+    // Hide loader once React app starts
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        const loader = document.getElementById('initial-loader');
+        if (loader) {
+          loader.style.opacity = '0';
+          loader.style.transition = 'opacity 0.5s ease-out';
+          setTimeout(function() {
+            loader.style.display = 'none';
+          }, 500);
+        }
+      }, 1000);
+    });
+  </script>
+</body>
+</html> 

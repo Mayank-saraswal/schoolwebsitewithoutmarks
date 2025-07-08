@@ -1,0 +1,151 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@300;400;500;600;700;800;900&display=swap');
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    line-height: 1.6;
+    /* Remove padding since navbar is now conditional and relative */
+    margin: 0;
+    padding: 0;
+  }
+  
+  .hindi {
+    font-family: 'Noto Sans Devanagari', system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  /* Global button styles for navbar consistency */
+  .btn-style {
+    @apply bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm transition-all duration-200;
+  }
+  
+  .btn-primary {
+    @apply bg-yellow-500 hover:bg-yellow-600 text-blue-900 px-6 py-3 rounded-lg font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl;
+  }
+  
+  .btn-secondary {
+    @apply border-2 border-white text-white hover:bg-white hover:text-blue-900 px-6 py-3 rounded-lg font-semibold transition-all duration-200;
+  }
+  
+  .section-padding {
+    @apply py-16 md:py-24;
+  }
+  
+  .container-custom {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Admin specific button styles */
+  .btn-admin {
+    @apply bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition-all duration-200;
+  }
+
+  .btn-admin-secondary {
+    @apply bg-gray-200 text-gray-700 hover:bg-gray-300 px-3 py-1 rounded text-sm transition-all duration-200;
+  }
+
+  .btn-fee-class {
+    @apply bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200;
+  }
+
+  .btn-fee-bus {
+    @apply bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200;
+  }
+
+  /* Layout specific fixes */
+  .navbar-public {
+    @apply w-full bg-white shadow-md relative z-10;
+  }
+
+  .navbar-admin {
+    @apply bg-blue-900 text-white relative z-20;
+  }
+
+  /* Section spacing - no longer needed since navbar is conditional */
+  .section-with-navbar {
+    @apply pt-0; /* Reset padding since navbar is now relative */
+  }
+
+  /* Dashboard layout specific */
+  .dashboard-layout {
+    @apply min-h-screen bg-gray-50 flex;
+  }
+
+  .dashboard-sidebar {
+    @apply bg-blue-900 text-white w-64 relative z-30;
+  }
+
+  .dashboard-content {
+    @apply flex-1 relative z-10;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    background: linear-gradient(135deg, #FDC500 0%, #FFD700 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .bg-primary {
+    background-color: #002B5B;
+  }
+  
+  .bg-accent {
+    background-color: #FDC500;
+  }
+
+  /* Z-index utilities for proper stacking order */
+  .z-navbar-public {
+    z-index: 10;
+  }
+
+  .z-navbar-admin {
+    z-index: 20;
+  }
+
+  .z-sidebar {
+    z-index: 30;
+  }
+
+  .z-dropdown {
+    z-index: 40;
+  }
+
+  .z-modal {
+    z-index: 50;
+  }
+
+  .z-toast {
+    z-index: 60;
+  }
+
+  /* Responsive text utilities */
+  .text-responsive {
+    @apply text-xs xl:text-sm;
+  }
+
+  .px-responsive {
+    @apply px-2 xl:px-3;
+  }
+
+  /* Layout helpers */
+  .content-spacing {
+    @apply p-4 sm:p-6 lg:p-8;
+  }
+
+  .card-style {
+    @apply bg-white rounded-lg shadow-md p-6;
+  }
+} 
