@@ -1,6 +1,5 @@
 import express from 'express';
 import { 
-  getSubjectsForClass,
   getClassFee,
   getBusFee,
   getBusRoutes,
@@ -13,9 +12,6 @@ import { verifyTeacherToken, verifyAdminToken } from '../middleware/authMiddlewa
 const router = express.Router();
 
 // ===== ALL ROUTES REQUIRE TEACHER AUTHENTICATION =====
-
-// GET /api/config/subjects/:class - Get subjects for a specific class
-router.get('/subjects/:class', verifyTeacherToken, getSubjectsForClass);
 
 // GET /api/config/fees/:class - Get class fee for a specific class
 router.get('/fees/:class', verifyTeacherToken, getClassFee);

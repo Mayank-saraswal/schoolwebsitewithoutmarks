@@ -136,10 +136,6 @@ const studentSchema = new mongoose.Schema({
     },
     default: null
   },
-  subjects: [{
-    type: String,
-    required: true
-  }],
   classFee: {
     total: {
       type: Number,
@@ -344,7 +340,6 @@ studentSchema.methods.getProfileData = function() {
     postalCode: this.postalCode,
     hasBus: this.hasBus,
     busRoute: this.busRoute,
-    subjects: this.subjects,
     classFee: this.classFee,
     busFee: this.busFee,
     totalFee: this.totalFee,

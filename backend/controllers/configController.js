@@ -1,7 +1,5 @@
-import Subject from '../models/Subject.js';
 import ClassFee from '../models/ClassFee.js';
 import BusRoute from '../models/BusRoute.js';
-
 
 
 // @desc    Get class fee for a specific class and medium
@@ -154,21 +152,10 @@ export const getStudentFormConfig = async (req, res) => {
     console.log(`Fetching config for: ${className}, Medium: ${selectedMedium}, Year: ${academicYear}`);
 
     // Initialize variables with defaults
-    let subjects = [];
     let feeStructure = null;
     let busRoutes = [];
     let busRouteOptions = [];
     const warnings = [];
-
-    // 1. Fetch subjects with error handling
-    try {
-      const subjectResult = await Subject.getSubjectsForClass(className, selectedMedium, academicYear);
-      subjects = Array.isArray(subjectResult) ? subjectResult : [];
-      console.log(`Found ${subjects.length} subjects for ${className} (${selectedMedium})`);
-    } catch (error) {
-      console.error('Error fetching subjects:', error);
-      warnings.push(`Error loading subjects for ${className} (${selectedMedium} Medium): ${error.message}`);
-    }
 
     // 2. Fetch fee structure with error handling
     try {
@@ -233,9 +220,6 @@ export const getStudentFormConfig = async (req, res) => {
     }
 
     // 4. Add configuration warnings
-    if (subjects.length === 0) {
-      warnings.push(`No subjects configured for ${className} (${selectedMedium} Medium)`);
-    }
 
     if (!feeStructure) {
       warnings.push(`No fee structure configured for ${className} (${selectedMedium} Medium)`);
@@ -251,11 +235,11 @@ export const getStudentFormConfig = async (req, res) => {
     
     console.log(`Class fee amount calculated: ${classFeeAmount}`);
     
-    // Configuration is complete if we have either subjects OR fees (more flexible)
-    const configComplete = subjects.length > 0 || classFeeAmount > 0;
+    // Configuration is complete if we have fees configured
+    const configComplete = classFeeAmount > 0;
     
     if (!configComplete) {
-      warnings.push(`Please set up subjects and/or fees for ${className} (${selectedMedium} Medium) in admin panel`);
+      warnings.push(`Please set up fees for ${className} (${selectedMedium} Medium) in admin panel`);
     }
 
     // 6. Prepare response data
@@ -263,7 +247,6 @@ export const getStudentFormConfig = async (req, res) => {
       class: className,
       medium: selectedMedium,
       academicYear,
-      subjects: subjects,
       classFee: classFeeAmount,
       feeBreakdown: feeStructure && typeof feeStructure.getFeeBreakdown === 'function' ? 
         feeStructure.getFeeBreakdown() : null,
@@ -271,7 +254,6 @@ export const getStudentFormConfig = async (req, res) => {
       configComplete,
       warnings,
       debug: {
-        subjectsCount: subjects.length,
         hasFeeStructure: !!feeStructure,
         busRoutesCount: busRoutes.length,
         teacherInfo: {
@@ -1013,49 +995,6 @@ export const getBusRouteFee = async (req, res) => {
   }
 }; 
 
-
-
-// @desc    Get subject options for dropdowns
-// @route   GET /api/admin/subject-options
-// @access  Private (Admin only)
-export const getSubjectOptions = async (req, res) => {
-  try {
-    // Always return all available classes, not just existing ones in database
-    const allClasses = [
-      'Nursery', 'LKG', 'UKG', 'Class 1', 'Class 2', 'Class 3', 'Class 4',
-      'Class 5', 'Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10',
-      'Class 11 Science', 'Class 11 Arts', 'Class 11 Commerce',
-      'Class 12 Science', 'Class 12 Arts', 'Class 12 Commerce'
-    ];
-    
-    // For mediums and years, we can get from database or use defaults
-    const mediums = await Subject.distinct('medium');
-    const years = await Subject.distinct('year');
-
-    const defaultMediums = ['Hindi', 'English'];
-    const currentYear = new Date().getFullYear();
-    const defaultYears = [currentYear - 1, currentYear, currentYear + 1];
-
-    console.log('Subject options request - Returning all classes:', allClasses.length);
-
-    res.status(200).json({
-      success: true,
-      data: {
-        classes: allClasses, // Always return all classes
-        mediums: mediums.length > 0 ? mediums.sort() : defaultMediums,
-        years: years.length > 0 ? years.map(Number).sort((a, b) => b - a) : defaultYears
-      }
-    });
-
-  } catch (error) {
-    console.error('Error getting subject options:', error);
-    res.status(500).json({
-      success: false,
-      message: 'विकल्प प्राप्त करने में त्रुटि / Error retrieving options',
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
-    });
-  }
-};
 
 // Test function for debugging bus route creation
 export const testBusRouteCreation = async (req, res) => {

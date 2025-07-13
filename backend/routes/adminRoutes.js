@@ -16,14 +16,6 @@ import {
   getAuditStats 
 } from '../controllers/adminStatsController.js';
 import { 
-  addExamType, 
-  getExamTypes, 
-  updateExamType, 
-  deleteExamType, 
-  getExamTypeOptions,
-  getExamTypeById 
-} from '../controllers/examTypeController.js';
-import { 
   setClassFee,
   setBusRouteFee,
   getClassFees,
@@ -36,9 +28,7 @@ import {
   forceDeleteBusRoute,
   getAllBusRoutes,
   getBusRouteFee,
-  testBusRouteCreation,
-
-  getSubjectOptions
+  testBusRouteCreation
 } from '../controllers/configController.js';
 import { verifyAdminToken } from '../middleware/authMiddleware.js';
 
@@ -89,24 +79,6 @@ router.patch('/approve-teacher/:id', verifyAdminToken, approveTeacher);
 // PATCH /api/admin/reject-teacher/:id - Reject teacher request
 router.patch('/reject-teacher/:id', verifyAdminToken, rejectTeacher);
 
-// ===== EXAM TYPE MANAGEMENT ROUTES =====
-// POST /api/admin/exam-type - Add new exam type
-router.post('/exam-type', verifyAdminToken, addExamType);
-
-// GET /api/admin/exam-types - Get exam types with filters
-router.get('/exam-types', verifyAdminToken, getExamTypes);
-
-// GET /api/admin/exam-type-options - Get dropdown options (classes, mediums, years)
-router.get('/exam-type-options', verifyAdminToken, getExamTypeOptions);
-
-// GET /api/admin/exam-type/:id - Get specific exam type by ID
-router.get('/exam-type/:id', verifyAdminToken, getExamTypeById);
-
-// PUT /api/admin/exam-type/:id - Update exam type
-router.put('/exam-type/:id', verifyAdminToken, updateExamType);
-
-// DELETE /api/admin/exam-type/:id - Delete exam type
-router.delete('/exam-type/:id', verifyAdminToken, deleteExamType);
 
 // ===== FEE MANAGEMENT ROUTES =====
 // POST /api/admin/set-class-fee - Set/Update class fee
@@ -261,9 +233,6 @@ router.post('/debug/add-bus-route', async (req, res) => {
   }
 });
 
-// ===== SUBJECT MANAGEMENT ROUTES =====
-// GET /api/admin/subject-options - Get dropdown options for subjects
-router.get('/subject-options', verifyAdminToken, getSubjectOptions);
 
 // Debug version of getStudentFormConfig without authentication
 router.get('/debug/student-form/:class', async (req, res) => {
@@ -279,9 +248,6 @@ router.get('/debug/student-form/:class', async (req, res) => {
     // Import models
     const ClassFee = (await import('../models/ClassFee.js')).default;
     const BusRoute = (await import('../models/BusRoute.js')).default;
-    const Subject = (await import('../models/Subject.js')).default;
-
-    let subjects = [];
     let feeStructure = null;
     let busRoutes = [];
     let busRouteOptions = [];
@@ -323,7 +289,6 @@ router.get('/debug/student-form/:class', async (req, res) => {
       class: className,
       medium: selectedMedium,
       academicYear,
-      subjects: subjects,
       classFee: classFeeAmount,
       feeBreakdown: feeStructure ? feeStructure.getFeeBreakdown() : null,
       busRoutes: busRouteOptions,
@@ -380,11 +345,10 @@ router.post('/debug/clear-all-data', async (req, res) => {
     const ClassFee = (await import('../models/ClassFee.js')).default;
     const BusRoute = (await import('../models/BusRoute.js')).default;
     const Teacher = (await import('../models/Teacher.js')).default;
-    const Marks = (await import('../models/Marks.js')).default;
-    const MaxMarks = (await import('../models/MaxMarks.js')).default;
-    const Subject = (await import('../models/Subject.js')).default;
     const Admission = (await import('../models/Admission.js')).default;
     const PaymentRequest = (await import('../models/PaymentRequest.js')).default;
+    const Announcement = (await import('../models/Announcement.js')).default;
+    const AuditLog = (await import('../models/AuditLog.js')).default;
 
     console.log('🗑️ Starting database cleanup...');
 
@@ -393,11 +357,10 @@ router.post('/debug/clear-all-data', async (req, res) => {
     const classFeeDeleted = await ClassFee.deleteMany({});
     const busRouteDeleted = await BusRoute.deleteMany({});
     const teachersDeleted = await Teacher.deleteMany({});
-    const marksDeleted = await Marks.deleteMany({});
-    const maxMarksDeleted = await MaxMarks.deleteMany({});
-    const subjectsDeleted = await Subject.deleteMany({});
     const admissionsDeleted = await Admission.deleteMany({});
     const paymentsDeleted = await PaymentRequest.deleteMany({});
+    const announcementsDeleted = await Announcement.deleteMany({});
+    const auditLogsDeleted = await AuditLog.deleteMany({});
 
     console.log('🗑️ Database cleanup completed!');
 
@@ -409,11 +372,10 @@ router.post('/debug/clear-all-data', async (req, res) => {
         classFees: classFeeDeleted.deletedCount,
         busRoutes: busRouteDeleted.deletedCount,
         teachers: teachersDeleted.deletedCount,
-        marks: marksDeleted.deletedCount,
-        maxMarks: maxMarksDeleted.deletedCount,
-        subjects: subjectsDeleted.deletedCount,
         admissions: admissionsDeleted.deletedCount,
-        payments: paymentsDeleted.deletedCount
+        payments: paymentsDeleted.deletedCount,
+        announcements: announcementsDeleted.deletedCount,
+        auditLogs: auditLogsDeleted.deletedCount
       }
     });
   } catch (error) {

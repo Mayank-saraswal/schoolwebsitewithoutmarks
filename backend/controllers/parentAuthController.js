@@ -1,6 +1,5 @@
 import jwt from 'jsonwebtoken';
 import Student from '../models/Student.js';
-import Marks from '../models/Marks.js';
 
 // Parent login using mobile number and child's date of birth
 export const parentLogin = async (req, res) => {
@@ -79,8 +78,7 @@ export const parentLogin = async (req, res) => {
       class: student.class,
       medium: student.medium,
       srNumber: student.srNumber,
-      dateOfBirth: student.dateOfBirth,
-      subjects: student.subjects
+      dateOfBirth: student.dateOfBirth
     }));
 
     res.status(200).json({
@@ -112,7 +110,7 @@ export const verifyParentToken = async (req, res) => {
     const students = await Student.find({
       _id: { $in: parent.studentIds },
       isActive: true
-    }).select('studentName class medium srNumber dateOfBirth subjects');
+    }).select('studentName class medium srNumber dateOfBirth');
 
     const studentList = students.map(student => ({
       _id: student._id,
@@ -120,8 +118,7 @@ export const verifyParentToken = async (req, res) => {
       class: student.class,
       medium: student.medium,
       srNumber: student.srNumber,
-      dateOfBirth: student.dateOfBirth,
-      subjects: student.subjects
+      dateOfBirth: student.dateOfBirth
     }));
 
     res.status(200).json({
@@ -135,85 +132,6 @@ export const verifyParentToken = async (req, res) => {
 
   } catch (error) {
     console.error('Parent token verification error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'सर्वर त्रुटि / Server error',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
-  }
-};
-
-// Get student marks grouped by subject and exam type
-export const getStudentMarks = async (req, res) => {
-  try {
-    const { studentId } = req.params;
-    const parent = req.parent;
-
-    // Verify parent has access to this student
-    if (!parent.studentIds.includes(studentId)) {
-      return res.status(403).json({
-        success: false,
-        message: 'इस छात्र की जानकारी तक पहुंच नहीं है / Access denied for this student'
-      });
-    }
-
-    // Get student details
-    const student = await Student.findById(studentId).select('studentName class medium subjects');
-    if (!student) {
-      return res.status(404).json({
-        success: false,
-        message: 'छात्र नहीं मिला / Student not found'
-      });
-    }
-
-    // Get all marks for this student
-    const marks = await Marks.find({
-      studentId: studentId
-    }).populate('maxMarksId', 'examType maxMarks').sort({ createdAt: 1 });
-
-    // Group marks by subject
-    const subjectMarks = {};
-
-    marks.forEach(mark => {
-      if (!subjectMarks[mark.subject]) {
-        subjectMarks[mark.subject] = [];
-      }
-
-      subjectMarks[mark.subject].push({
-        examType: mark.maxMarksId?.examType || 'Unknown',
-        score: mark.marksObtained,
-        maxMarks: mark.maxMarksId?.maxMarks || mark.maxMarks,
-        percentage: mark.maxMarksId?.maxMarks 
-          ? Math.round((mark.marksObtained / mark.maxMarksId.maxMarks) * 100)
-          : Math.round((mark.marksObtained / mark.maxMarks) * 100),
-        date: mark.createdAt,
-        remarks: mark.remarks || ''
-      });
-    });
-
-    // Convert to array format
-    const formattedMarks = Object.keys(subjectMarks).map(subject => ({
-      subject: subject,
-      marks: subjectMarks[subject].sort((a, b) => new Date(a.date) - new Date(b.date))
-    }));
-
-    res.status(200).json({
-      success: true,
-      message: 'छात्र के अंक सफलतापूर्वक प्राप्त हुए / Student marks retrieved successfully',
-      data: {
-        student: {
-          name: student.studentName,
-          class: student.class,
-          medium: student.medium,
-          subjects: student.subjects
-        },
-        marks: formattedMarks,
-        totalSubjects: formattedMarks.length
-      }
-    });
-
-  } catch (error) {
-    console.error('Get student marks error:', error);
     res.status(500).json({
       success: false,
       message: 'सर्वर त्रुटि / Server error',
@@ -286,100 +204,6 @@ export const getStudentFees = async (req, res) => {
 
   } catch (error) {
     console.error('Get student fees error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'सर्वर त्रुटि / Server error',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
-  }
-};
-
-// Get marksheet data for PDF generation
-export const getMarksheetData = async (req, res) => {
-  try {
-    const { studentId } = req.params;
-    const parent = req.parent;
-
-    // Verify parent has access to this student
-    if (!parent.studentIds.includes(studentId)) {
-      return res.status(403).json({
-        success: false,
-        message: 'इस छात्र की जानकारी तक पहुंच नहीं है / Access denied for this student'
-      });
-    }
-
-    // Get student details
-    const student = await Student.findById(studentId).select(
-      'studentName fatherName motherName class medium srNumber dateOfBirth subjects'
-    );
-
-    if (!student) {
-      return res.status(404).json({
-        success: false,
-        message: 'छात्र नहीं मिला / Student not found'
-      });
-    }
-
-    // Get all marks for this student with exam type details
-    const marks = await Marks.find({
-      studentId: studentId
-    }).populate('maxMarksId', 'examType maxMarks year class medium').sort({ 
-      subject: 1, 
-      createdAt: 1 
-    });
-
-    // Group marks by subject and exam type
-    const marksheetData = {};
-    const examTypes = new Set();
-
-    marks.forEach(mark => {
-      const subject = mark.subject;
-      const examType = mark.maxMarksId?.examType || 'Unknown';
-      
-      examTypes.add(examType);
-
-      if (!marksheetData[subject]) {
-        marksheetData[subject] = {};
-      }
-
-      marksheetData[subject][examType] = {
-        score: mark.marksObtained,
-        maxMarks: mark.maxMarksId?.maxMarks || mark.maxMarks,
-        percentage: mark.maxMarksId?.maxMarks 
-          ? Math.round((mark.marksObtained / mark.maxMarksId.maxMarks) * 100)
-          : Math.round((mark.marksObtained / mark.maxMarks) * 100)
-      };
-    });
-
-    // Calculate overall statistics
-    const overallStats = {
-      totalSubjects: Object.keys(marksheetData).length,
-      examTypes: Array.from(examTypes).sort(),
-      generatedAt: new Date(),
-      academicYear: new Date().getFullYear()
-    };
-
-    res.status(200).json({
-      success: true,
-      message: 'मार्कशीट डेटा सफलतापूर्वक प्राप्त हुआ / Marksheet data retrieved successfully',
-      data: {
-        student: {
-          name: student.studentName,
-          fatherName: student.fatherName,
-          motherName: student.motherName,
-          class: student.class,
-          medium: student.medium,
-          srNumber: student.srNumber,
-          dateOfBirth: student.dateOfBirth,
-          subjects: student.subjects
-        },
-        marks: marksheetData,
-        stats: overallStats
-      }
-    });
-
-  } catch (error) {
-    console.error('Get marksheet data error:', error);
     res.status(500).json({
       success: false,
       message: 'सर्वर त्रुटि / Server error',

@@ -45,8 +45,8 @@ RAZORPAY_KEY_SECRET=YOUR_RAZORPAY_KEY_SECRET
 # Get these from: https://dashboard.razorpay.com/app/keys
 
 # Admin Configuration
-ADMIN_EMAIL=admin@excellenceschool.com
-ADMIN_PASSWORD=ExcellenceAdmin2025!
+ADMIN_EMAIL=mayanksaraswal@gmail.com
+ADMIN_PASSWORD=HelloAdmin
 
 # Security Configuration
 BCRYPT_SALT_ROUNDS=12
@@ -151,8 +151,8 @@ node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 
 #### Default Admin Login:
 ```env
-ADMIN_EMAIL=admin@excellenceschool.com
-ADMIN_PASSWORD=ExcellenceAdmin2025!
+ADMIN_EMAIL=mayanksaraswal@gmail.com
+ADMIN_PASSWORD=HelloAdmin
 ```
 
 #### Custom Admin Setup:
@@ -297,8 +297,8 @@ School Website 2025/
 
 ### Admin Dashboard:
 - **URL:** http://localhost:3000/admin/login
-- **Username:** admin@excellenceschool.com
-- **Password:** ExcellenceAdmin2025!
+- **Username:** mayanksaraswal@gmail.com
+- **Password:** HelloAdmin
 
 ### Parent Portal:
 - **URL:** http://localhost:3000/parent/login

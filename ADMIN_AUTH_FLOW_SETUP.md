@@ -155,7 +155,7 @@ apiCall('/api/students');
 ### Test Scenario 1: New User
 1. Visit `http://localhost:3000/admin`
 2. Should see login form
-3. Enter credentials: `admin@saraswatischool` / `SaraswatiAdmin2025!`
+3. Enter credentials: `mayanksaraswal@gmail.com` / `HelloAdmin`
 4. Should redirect to medium selection
 5. Select Hindi or English
 6. Should redirect to dashboard

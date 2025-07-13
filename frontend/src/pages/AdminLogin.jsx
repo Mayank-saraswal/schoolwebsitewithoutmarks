@@ -172,8 +172,7 @@ const AdminLogin = () => {
               🔐 Default Credentials
             </h4>
             <div className="text-xs text-blue-700 space-y-1">
-              <p><strong>Admin ID:</strong> admin@saraswatischool.com</p>
-              <p><strong>Password:</strong> SaraswatiAdmin2025!</p>
+             
             </div>
             <p className="text-xs text-blue-600 mt-2">
               Use these credentials to access the admin panel

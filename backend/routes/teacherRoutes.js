@@ -6,7 +6,6 @@ import express from 'express';
     getTeacherProfile, 
     verifyTeacherToken as verifyTokenController
   } from '../controllers/teacherController.js';
-  import { setMaxMarksForExam } from '../controllers/marksController.js';
   import { verifyTeacherToken } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -27,8 +26,5 @@ router.get('/verify', verifyTeacherToken, verifyTokenController);
 
 // POST /api/teachers/logout - Teacher logout
 router.post('/logout', logoutTeacher);
-
-// POST /api/teacher/set-max-marks - Set max marks for exam and subject list
-router.post('/set-max-marks', verifyTeacherToken, setMaxMarksForExam);
 
 export default router; 

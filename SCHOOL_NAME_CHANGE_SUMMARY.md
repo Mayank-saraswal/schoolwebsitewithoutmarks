@@ -54,7 +54,7 @@
 
 **Admin Login:**
 - **Old:** `admin@excellenceschool` / `ExcellenceAdmin2025!`
-- **New:** `admin@saraswatischool` / `SaraswatiAdmin2025!`
+- **New:** `mayanksaraswal@gmail.com` / `HelloAdmin`
 
 **Email References:**
 - **Old:** `info@excellenceschool.edu.in`
@@ -98,8 +98,8 @@
 
 1. **Update Environment Variables** (if needed):
    ```bash
-   ADMIN_EMAIL=admin@saraswatischool.com
-   ADMIN_PASSWORD=SaraswatiAdmin2025!
+   ADMIN_EMAIL=mayanksaraswal@gmail.com
+        ADMIN_PASSWORD=HelloAdmin
    ```
 
 2. **Update Domain/Email** (when ready):

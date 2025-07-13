@@ -4,8 +4,8 @@ import AuditLogger from '../utils/auditLogger.js';
 
 // Preset admin credentials (from environment variables for security)
 const ADMIN_CREDENTIALS = {
-  adminId: process.env.ADMIN_EMAIL || 'admin@saraswatischool.com',
-  password: process.env.ADMIN_PASSWORD || 'SaraswatiAdmin2025!', // This will be hashed
+  adminId: process.env.ADMIN_EMAIL || 'mayanksaraswal@gmail.com',
+  password: process.env.ADMIN_PASSWORD || 'HelloAdmin', // This will be hashed
   name: 'Administrator',
   role: 'admin'
 };
@@ -442,8 +442,8 @@ export const rejectTeacher = async (req, res) => {
 
 // Utility function to generate new admin credentials (for setup)
 export const generateAdminCredentials = async () => {
-  const adminId = 'admin@saraswatischool.com';
-  const password = 'SaraswatiAdmin2025!';
+  const adminId = 'mayanksaraswal@gmail.com';
+  const password = 'HelloAdmin';
   const hashedPassword = await hashPassword(password);
   
   return {

@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import Student from '../models/Student.js';
-import Subject from '../models/Subject.js';
 import ClassFee from '../models/ClassFee.js';
 import BusRoute from '../models/BusRoute.js';
 import Teacher from '../models/Teacher.js';
@@ -181,19 +180,8 @@ export const createStudent = async (req, res) => {
       busRouteFee = selectedBusRoute.feeAmount;
     }
 
-    // Get subjects for the class and selected medium
-    let subjects = [];
+    // Get class fee
     let classFee = 0;
-
-    try {
-      subjects = await Subject.getSubjectsForClass(studentClass, medium);
-      if (!subjects || subjects.length === 0) {
-        // Allow creation even without subjects configured - admin can set them up later
-        console.warn(`No subjects found for ${studentClass} (${medium} Medium)`);
-      }
-    } catch (error) {
-      console.warn('Error fetching subjects:', error);
-    }
 
     try {
       classFee = await ClassFee.getFeeForClass(studentClass, medium);
@@ -221,7 +209,6 @@ export const createStudent = async (req, res) => {
       medium: medium,
       hasBus: hasBus || false,
       busRoute: hasBus ? selectedBusRoute.routeName : null,
-      subjects: subjects && subjects.length > 0 ? subjects.map(subject => subject.name) : ['General'],
       classFee: {
         total: classFee || 0,
         paid: 0,
@@ -259,7 +246,6 @@ export const createStudent = async (req, res) => {
           totalFee: savedStudent.totalFee,
           feeStatus: savedStudent.feeStatus
         },
-        subjects: savedStudent.subjects,
         busInfo: hasBus ? {
           routeName: selectedBusRoute.routeName,
           routeCode: selectedBusRoute.routeCode,
@@ -335,7 +321,6 @@ export const testCreateStudent = async (req, res) => {
       medium: 'Hindi',
       hasBus: false,
       busRoute: null,
-      subjects: ['General'],
       classFee: {
         total: 5000,
         paid: 0,

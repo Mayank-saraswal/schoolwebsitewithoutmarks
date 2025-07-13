@@ -81,7 +81,7 @@ const requiredVars = [
   {
     name: 'ADMIN_EMAIL',
     description: 'Admin login email',
-    defaultValue: 'admin@saraswatischool.com',
+    defaultValue: 'mayanksaraswal@gmail.com',
     validation: (value) => {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       return emailRegex.test(value);
@@ -90,7 +90,7 @@ const requiredVars = [
   {
     name: 'ADMIN_PASSWORD',
     description: 'Admin login password',
-    defaultValue: 'SaraswatiAdmin2025!',
+    defaultValue: 'HelloAdmin',
     validation: (value) => {
       return value.length >= 8; // Minimum 8 characters
     }
@@ -246,7 +246,7 @@ if (nodeEnv === 'production') {
     hasErrors = true;
   }
   
-  if (process.env.ADMIN_PASSWORD && process.env.ADMIN_PASSWORD === 'SaraswatiAdmin2025!') {
+      if (process.env.ADMIN_PASSWORD && process.env.ADMIN_PASSWORD === 'HelloAdmin') {
     console.log(`${colors.red}❌ Using default admin password in production!${colors.reset}`);
     hasErrors = true;
   }

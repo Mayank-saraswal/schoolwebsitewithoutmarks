@@ -12,8 +12,6 @@ import teacherRoutes from './routes/teacherRoutes.js';
 import parentRoutes from './routes/parentRoutes.js';
 import studentRoutes from './routes/studentRoutes.js';
 import configRoutes from './routes/configRoutes.js';
-import marksRoutes from './routes/marksRoutes.js';
-import subjectRoutes from './routes/subjectRoutes.js';
 import busRoutes from './routes/busRoutes.js';
 import admissionRoutes from './routes/admissionRoutes.js';
 import announcementRoutes from './routes/announcementRoutes.js';
@@ -63,12 +61,9 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/excellenc
 // Routes
 app.use('/api/admin', adminRoutes);
 app.use('/api/teachers', teacherRoutes);
-app.use('/api/teacher', teacherRoutes); // Add teacher prefix for set-max-marks endpoint
 app.use('/api/parents', parentRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/config', configRoutes);
-app.use('/api/marks', marksRoutes);
-app.use('/api', subjectRoutes); // Add subject routes for /api/subjects and /api/admin/subjects
 app.use('/api/bus', busRoutes);
 app.use('/api/admissions', admissionRoutes);
 app.use('/api/announcements', announcementRoutes);

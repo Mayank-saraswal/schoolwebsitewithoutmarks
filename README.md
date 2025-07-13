@@ -49,8 +49,8 @@ MONGO_URI=YOUR_MONGODB_URI
 JWT_SECRET=saraswati-school-super-secure-jwt-secret-key-2025-hindi-english-medium
 RAZORPAY_KEY_ID=YOUR_RAZORPAY_KEY_ID
 RAZORPAY_KEY_SECRET=YOUR_RAZORPAY_KEY_SECRET
-ADMIN_EMAIL=admin@saraswatischool.com
-ADMIN_PASSWORD=SaraswatiAdmin2025!
+ADMIN_EMAIL=mayanksaraswal@gmail.com
+ADMIN_PASSWORD=HelloAdmin
 CORS_ORIGIN=http://localhost:3000
 ```
 
@@ -89,8 +89,8 @@ npm start
 
 ### Admin Dashboard
 - **URL:** http://localhost:3000/admin/login
-- **Admin ID:** admin@saraswatischool.com
-- **Password:** SaraswatiAdmin2025!
+- **Admin ID:** mayanksaraswal@gmail.com
+- **Password:** HelloAdmin
 
 ### Parent Portal
 - **URL:** http://localhost:3000/parent/login
@@ -266,7 +266,7 @@ lsof -i :5000
 # Test admin login
 curl -X POST http://localhost:5000/api/admin/login \
   -H "Content-Type: application/json" \
-  -d '{"adminId":"admin@saraswatischool.com","password":"SaraswatiAdmin2025!"}'
+  -d '{"adminId":"mayanksaraswal@gmail.com","password":"HelloAdmin"}'
 ```
 
 ---

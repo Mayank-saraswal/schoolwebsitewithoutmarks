@@ -4,12 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import StudentCreateForm from '../components/StudentCreateForm';
 import StudentEditForm from '../components/StudentEditForm';
 import StudentList from '../components/StudentList';
-import MarksUploadForm from '../components/MarksUploadForm';
-import MarksTable from '../components/MarksTable';
-import MarksEdit from '../components/MarksEdit';
-import ExamViewer from '../components/ExamViewer';
-import MaxMarksSetup from '../components/MaxMarksSetup';
-import ExamMarksSetup from '../components/ExamMarksSetup';
 import { 
   GraduationCap, 
   User, 
@@ -38,18 +32,8 @@ const TeacherDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [refreshStudents, setRefreshStudents] = useState(0);
-  const [showMarksUpload, setShowMarksUpload] = useState(false);
-  const [showMarksEdit, setShowMarksEdit] = useState(false);
-  const [selectedMarksForEdit, setSelectedMarksForEdit] = useState(null);
-  const [refreshMarks, setRefreshMarks] = useState(0);
-  const [showMaxMarksSetup, setShowMaxMarksSetup] = useState(false);
-  const [selectedExamForSetup, setSelectedExamForSetup] = useState('');
-  const [selectedExamConfig, setSelectedExamConfig] = useState(null);
-  const [selectedExamForUpload, setSelectedExamForUpload] = useState('');
-  const [subjects, setSubjects] = useState([]);
   const [showStudentEdit, setShowStudentEdit] = useState(false);
   const [selectedStudentForEdit, setSelectedStudentForEdit] = useState(null);
-  const [examManagementView, setExamManagementView] = useState('overview'); // 'overview', 'setup-marks'
 
   // Redirect if not authenticated or not a teacher
   useEffect(() => {
@@ -109,30 +93,6 @@ const TeacherDashboard = () => {
       icon: UsersIcon,
       key: 'my-students',
       description: 'View student list / छात्र सूची देखें'
-    },
-    {
-      name: 'Exam Management / परीक्षा प्रबंधन',
-      icon: BookOpen,
-      key: 'exam-management',
-      description: 'Manage exams & marks / परीक्षा और अंक प्रबंधित करें'
-    },
-    {
-      name: 'Set Max Marks / अधिकतम अंक सेट करें',
-      icon: Settings,
-      key: 'set-max-marks',
-      description: 'Auto-fetch subjects & set max marks / विषय स्वचालित लाएं और अधिकतम अंक सेट करें'
-    },
-    {
-      name: 'Upload Marks / अंक अपलोड करें',
-      icon: Upload,
-      key: 'upload-marks',
-      description: 'Upload exam marks / परीक्षा अंक अपलोड करें'
-    },
-    {
-      name: 'Marks Management / अंक प्रबंधन',
-      icon: BarChart3,
-      key: 'marks-management',
-      description: 'View & edit marks / अंक देखें और संपादित करें'
     },
     {
       name: 'Classes / कक्षाएं',
@@ -205,46 +165,6 @@ const TeacherDashboard = () => {
   const handleCancelEdit = () => {
     setShowStudentEdit(false);
     setSelectedStudentForEdit(null);
-  };
-
-  const handleMarksUploaded = (marks) => {
-    setRefreshMarks(prev => prev + 1);
-    setShowMarksUpload(false);
-    // Switch to marks management tab to view uploaded marks
-    setActiveTab('marks-management');
-  };
-
-  const handleEditMarks = (marksData) => {
-    setSelectedMarksForEdit(marksData);
-    setShowMarksEdit(true);
-  };
-
-  const handleMarksUpdated = (updatedMarks) => {
-    setRefreshMarks(prev => prev + 1);
-    setShowMarksEdit(false);
-    setSelectedMarksForEdit(null);
-  };
-
-  const handleSetMaxMarks = (examType, existingConfig) => {
-    setSelectedExamForSetup(examType);
-    setSelectedExamConfig(existingConfig);
-    setShowMaxMarksSetup(true);
-  };
-
-  const handleMaxMarksSaved = (savedConfig) => {
-    setShowMaxMarksSetup(false);
-    setSelectedExamForSetup('');
-    setSelectedExamConfig(null);
-    // Optionally refresh exam data or show success message
-  };
-
-  const handleUploadMarksForExam = (examType) => {
-    setSelectedExamForUpload(examType);
-    setShowMarksUpload(true);
-  };
-
-  const handleExamSelected = (examType) => {
-    setSelectedExamForUpload(examType);
   };
 
   return (
@@ -472,7 +392,7 @@ const TeacherDashboard = () => {
                   </div>
                   
                   <div className="p-6">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <button
                         onClick={() => handleTabChange('create-student')}
                         className="bg-blue-50 hover:bg-blue-100 rounded-lg p-4 text-center transition-colors"
@@ -491,32 +411,6 @@ const TeacherDashboard = () => {
                         <p className="text-xs text-green-600">View and manage students</p>
                       </button>
 
-                      <button
-                        onClick={() => handleTabChange('set-max-marks')}
-                        className="bg-purple-50 hover:bg-purple-100 rounded-lg p-4 text-center transition-colors"
-                      >
-                        <Settings className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-                        <p className="text-sm font-medium text-purple-900">Set Max Marks</p>
-                        <p className="text-xs text-purple-600">Auto-fetch subjects & set marks</p>
-                      </button>
-
-                      <button
-                        onClick={() => handleTabChange('exam-management')}
-                        className="bg-indigo-50 hover:bg-indigo-100 rounded-lg p-4 text-center transition-colors"
-                      >
-                        <BookOpen className="h-8 w-8 text-indigo-600 mx-auto mb-2" />
-                        <p className="text-sm font-medium text-indigo-900">Exam Management</p>
-                        <p className="text-xs text-indigo-600">Setup exams & marks</p>
-                      </button>
-
-                      <button
-                        onClick={() => handleTabChange('marks-management')}
-                        className="bg-orange-50 hover:bg-orange-100 rounded-lg p-4 text-center transition-colors"
-                      >
-                        <BarChart3 className="h-8 w-8 text-orange-600 mx-auto mb-2" />
-                        <p className="text-sm font-medium text-orange-900">Marks Management</p>
-                        <p className="text-xs text-orange-600">View and edit marks</p>
-                      </button>
                     </div>
                   </div>
                 </div>
@@ -538,103 +432,7 @@ const TeacherDashboard = () => {
               />
             )}
 
-            {activeTab === 'upload-marks' && (
-              <div className="bg-white rounded-lg shadow">
-                <div className="px-6 py-4 border-b border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    Upload Student Marks / छात्र अंक अपलोड करें
-                  </h3>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Upload exam marks for your students / अपने छात्रों के लिए परीक्षा अंक अपलोड करें
-                  </p>
-                </div>
-                
-                <div className="p-6">
-                  <div className="text-center py-8">
-                    <Upload className="mx-auto h-16 w-16 text-purple-300 mb-4" />
-                    <h4 className="text-xl font-medium text-gray-900 mb-2">
-                      Ready to Upload Marks? / अंक अपलोड करने के लिए तैयार हैं?
-                    </h4>
-                    <p className="text-gray-500 max-w-md mx-auto mb-6">
-                      Select a student, choose exam type, and enter subject-wise marks with automatic grade calculation.
-                    </p>
-                    <p className="text-gray-500 max-w-md mx-auto mb-6">
-                      एक छात्र चुनें, परीक्षा प्रकार चुनें, और स्वचालित ग्रेड गणना के साथ विषयवार अंक दर्ज करें।
-                    </p>
-                    <button
-                      onClick={() => setShowMarksUpload(true)}
-                      className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2 mx-auto"
-                    >
-                      <Upload className="h-5 w-5" />
-                      Start Uploading Marks / अंक अपलोड करना शुरू करें
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
 
-            {activeTab === 'exam-management' && (
-              <ExamViewer 
-                onSelectExam={handleExamSelected}
-                onSetMaxMarks={handleSetMaxMarks}
-                onUploadMarks={handleUploadMarksForExam}
-              />
-            )}
-
-            {activeTab === 'set-max-marks' && (
-              <ExamMarksSetup />
-            )}
-
-            {activeTab === 'marks-management' && (
-              <MarksTable 
-                key={refreshMarks}
-                onEditMarks={handleEditMarks}
-              />
-            )}
-
-            {/* Marks Upload Modal */}
-            {showMarksUpload && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-                  <MarksUploadForm
-                    onSuccess={handleMarksUploaded}
-                    onCancel={() => setShowMarksUpload(false)}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Max Marks Setup Modal */}
-            {showMaxMarksSetup && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                <div className="w-full max-w-6xl max-h-[90vh] overflow-y-auto">
-                  <MaxMarksSetup 
-                    examType={selectedExamForSetup}
-                    existingConfig={selectedExamConfig}
-                    subjects={subjects}
-                    onSave={handleMaxMarksSaved}
-                    onCancel={() => {
-                      setShowMaxMarksSetup(false);
-                      setSelectedExamForSetup('');
-                      setSelectedExamConfig(null);
-                    }}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Marks Edit Modal */}
-            {showMarksEdit && selectedMarksForEdit && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-                  <MarksEdit
-                    marksData={selectedMarksForEdit}
-                    onSuccess={handleMarksUpdated}
-                    onCancel={() => setShowMarksEdit(false)}
-                  />
-                </div>
-              </div>
-            )}
 
             {/* Student Edit Modal */}
             {showStudentEdit && selectedStudentForEdit && (

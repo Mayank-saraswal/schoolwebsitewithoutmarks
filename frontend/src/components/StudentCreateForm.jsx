@@ -42,7 +42,6 @@ const StudentCreateForm = ({ onStudentCreated, onCancel }) => {
   });
 
   const [formConfig, setFormConfig] = useState({
-    subjects: [],
     classFee: 0,
     feeBreakdown: null,
     busRoutes: [],
@@ -265,7 +264,7 @@ const StudentCreateForm = ({ onStudentCreated, onCancel }) => {
     }
 
     if (!formConfig.configComplete) {
-      alert('Form configuration is incomplete. Please contact admin to set up subjects and fees for this class.');
+      alert('Form configuration is incomplete. Please contact admin to set up fees for this class.');
       return;
     }
 
@@ -841,51 +840,28 @@ const StudentCreateForm = ({ onStudentCreated, onCancel }) => {
           )}
         </div>
 
-        {/* Subjects and Fees Display */}
+        {/* Fee Display */}
         {formData.class && !isLoadingConfig && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Subjects */}
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <h3 className="text-sm font-medium text-blue-900 mb-3 flex items-center">
-                <BookOpen className="h-4 w-4 mr-1" />
-                Subjects / विषय ({formConfig.subjects.length})
-              </h3>
-              {formConfig.subjects.length > 0 ? (
-                <div className="space-y-1">
-                  {formConfig.subjects.map((subject, index) => (
-                    <div key={index} className="text-sm text-blue-700 flex items-center">
-                      <Check className="h-3 w-3 mr-2" />
-                      {subject.name}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-blue-600">No subjects configured</p>
-              )}
-            </div>
-
-            {/* Fee Breakdown */}
-            <div className="bg-green-50 p-4 rounded-lg">
-              <h3 className="text-sm font-medium text-green-900 mb-3 flex items-center">
-                <DollarSign className="h-4 w-4 mr-1" />
-                Fee Structure / फीस संरचना
-              </h3>
-              <div className="space-y-2 text-sm">
+          <div className="bg-green-50 p-4 rounded-lg">
+            <h3 className="text-sm font-medium text-green-900 mb-3 flex items-center">
+              <DollarSign className="h-4 w-4 mr-1" />
+              Fee Structure / फीस संरचना
+            </h3>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between text-green-700">
+                <span>Class Fee / कक्षा फीस:</span>
+                <span>₹{formConfig.classFee.toLocaleString()}</span>
+              </div>
+              {formData.hasBus && selectedBusRoute && (
                 <div className="flex justify-between text-green-700">
-                  <span>Class Fee / कक्षा फीस:</span>
-                  <span>₹{formConfig.classFee.toLocaleString()}</span>
+                  <span>Bus Fee / बस फीस:</span>
+                  <span>₹{selectedBusRoute.fee.toLocaleString()}</span>
                 </div>
-                {formData.hasBus && selectedBusRoute && (
-                  <div className="flex justify-between text-green-700">
-                    <span>Bus Fee / बस फीस:</span>
-                    <span>₹{selectedBusRoute.fee.toLocaleString()}</span>
-                  </div>
-                )}
-                <div className="border-t border-green-200 pt-2">
-                  <div className="flex justify-between font-medium text-green-800">
-                    <span>Total Fee / कुल फीस:</span>
-                    <span>₹{calculateTotalFee().toLocaleString()}</span>
-                  </div>
+              )}
+              <div className="border-t border-green-200 pt-2">
+                <div className="flex justify-between font-medium text-green-800">
+                  <span>Total Fee / कुल फीस:</span>
+                  <span>₹{calculateTotalFee().toLocaleString()}</span>
                 </div>
               </div>
             </div>

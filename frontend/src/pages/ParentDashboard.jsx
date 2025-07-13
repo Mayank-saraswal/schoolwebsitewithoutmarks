@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useParent } from '../context/ParentContext';
-import MarksViewer from '../components/MarksViewer';
-import ProgressChart from '../components/ProgressChart';
 import FeeStatusPanel from '../components/FeeStatusPanel';
-import MarksheetDownload from '../components/MarksheetDownload';
 import StudentNotificationBanner from '../components/StudentNotificationBanner';
 
 const ParentDashboard = () => {
@@ -19,7 +16,7 @@ const ParentDashboard = () => {
   } = useParent();
   
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('marks');
+  const [activeTab, setActiveTab] = useState('fees');
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -144,9 +141,6 @@ const ParentDashboard = () => {
                     </span>
                   </div>
                 </div>
-                <div className="mt-4 md:mt-0">
-                  <MarksheetDownload studentId={selectedStudent._id} />
-                </div>
               </div>
             </div>
 
@@ -161,26 +155,6 @@ const ParentDashboard = () => {
             <div className="bg-white rounded-lg shadow-md mb-6">
               <div className="border-b border-gray-200">
                 <nav className="flex space-x-8 px-6">
-                  <button
-                    onClick={() => setActiveTab('marks')}
-                    className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-                      activeTab === 'marks'
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
-                  >
-                    📊 अंक तालिका / Marks Table
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('progress')}
-                    className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-                      activeTab === 'progress'
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
-                  >
-                    📈 प्रगति चार्ट / Progress Chart
-                  </button>
                   <button
                     onClick={() => setActiveTab('fees')}
                     className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
@@ -202,12 +176,6 @@ const ParentDashboard = () => {
 
               {/* Tab Content */}
               <div className="p-6">
-                {activeTab === 'marks' && (
-                  <MarksViewer studentId={selectedStudent._id} />
-                )}
-                {activeTab === 'progress' && (
-                  <ProgressChart studentId={selectedStudent._id} />
-                )}
                 {activeTab === 'fees' && (
                   <FeeStatusPanel studentId={selectedStudent._id} />
                 )}
@@ -228,10 +196,10 @@ const ParentDashboard = () => {
               बच्चे का चयन करें / Select a Child
             </h3>
             <p className="text-gray-500">
-              अपने बच्चे के अंक और फीस की स्थिति देखने के लिए ऊपर से चयन करें
+              अपने बच्चे की फीस की स्थिति देखने के लिए ऊपर से चयन करें
             </p>
             <p className="text-gray-500 text-sm">
-              Select from above to view your child's marks and fee status
+              Select from above to view your child's fee status
             </p>
           </div>
         )}

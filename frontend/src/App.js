@@ -24,7 +24,6 @@ const TeacherDashboard = React.lazy(() => import('./pages/TeacherDashboard'));
 const ParentLogin = React.lazy(() => import('./pages/ParentLogin'));
 const ParentDashboard = React.lazy(() => import('./pages/ParentDashboard'));
 const FeePaymentPage = React.lazy(() => import('./pages/FeePaymentPage'));
-const ExamTypeManagement = React.lazy(() => import('./pages/ExamTypeManagement'));
 
 const LoadingSpinner = () => (
   <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
@@ -51,8 +50,7 @@ const AppContent = () => {
   
   const dashboardRoutes = [
     '/admin/dashboard',
-    '/admin/medium-select', 
-    '/admin/exam-types',
+    '/admin/medium-select',
     '/teacher/dashboard',
     '/parent/dashboard'
   ];
@@ -80,11 +78,6 @@ const AppContent = () => {
             <Route path="/admin/dashboard" element={
               <AdminProtectedRoute requireMediumSelection={true}>
                 <AdminDashboard />
-              </AdminProtectedRoute>
-            } />
-            <Route path="/admin/exam-types" element={
-              <AdminProtectedRoute requireMediumSelection={true}>
-                <ExamTypeManagement />
               </AdminProtectedRoute>
             } />
             

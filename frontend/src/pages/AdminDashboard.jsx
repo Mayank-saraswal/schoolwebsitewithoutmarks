@@ -4,8 +4,6 @@ import { useAdmin } from '../context/AdminContext';
 import AdmissionViewer from '../components/AdmissionViewer';
 import TeacherRequestViewer from '../components/TeacherRequestViewer';
 import StudentList from '../components/StudentList';
-import ExamTypeConfigPanel from '../components/ExamTypeConfigPanel';
-import SubjectSetup from '../components/SubjectSetup';
 import PaymentApprovalPanel from '../components/PaymentApprovalPanel';
 import AdminAnnouncementForm from '../components/AdminAnnouncementForm';
 import AdminAnnouncementList from '../components/AdminAnnouncementList';
@@ -193,26 +191,6 @@ const AdminDashboard = () => {
               💰 Fee Management / फीस प्रबंधन
             </button>
             <button
-              onClick={() => setActiveTab('subjects')}
-              className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                activeTab === 'subjects' 
-                  ? 'bg-blue-800 text-white' 
-                  : 'text-blue-200 hover:bg-blue-800 hover:text-white'
-              }`}
-            >
-              📚 Subject Management / विषय प्रबंधन
-            </button>
-            <button
-              onClick={() => setActiveTab('examTypes')}
-              className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                activeTab === 'examTypes' 
-                  ? 'bg-blue-800 text-white' 
-                  : 'text-blue-200 hover:bg-blue-800 hover:text-white'
-              }`}
-            >
-              📝 Exam Configuration / परीक्षा कॉन्फ़िगरेशन
-            </button>
-            <button
               onClick={() => setActiveTab('payments')}
               className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                 activeTab === 'payments' 
@@ -280,10 +258,6 @@ const AdminDashboard = () => {
                     ? 'Student Management / छात्र प्रबंधन'
                     : activeTab === 'fees'
                     ? 'Fee Management / फीस प्रबंधन'
-                    : activeTab === 'subjects'
-                    ? 'Subject Management / विषय प्रबंधन'
-                    : activeTab === 'examTypes'
-                    ? 'Exam Configuration / परीक्षा कॉन्फ़िगरेशन'
                     : activeTab === 'payments'
                     ? 'Payment Approval / भुगतान अनुमोदन'
                     : activeTab === 'announcements'
@@ -372,11 +346,6 @@ const AdminDashboard = () => {
                   </div>
                 )}
 
-                {activeTab === 'examTypes' && (
-                  <div className="text-sm text-gray-500">
-                    Configure exam types and maximum marks
-                  </div>
-                )}
 
                 {activeTab === 'payments' && (
                   <div className="text-sm text-gray-500">
@@ -435,10 +404,6 @@ const AdminDashboard = () => {
             <StudentList />
           ) : activeTab === 'fees' ? (
             feeManagementTab === 'class' ? <ClassFeeForm /> : <BusFeeForm />
-          ) : activeTab === 'subjects' ? (
-            <SubjectSetup />
-          ) : activeTab === 'examTypes' ? (
-            <ExamTypeConfigPanel />
           ) : activeTab === 'payments' ? (
             <PaymentApprovalPanel />
           ) : activeTab === 'announcements' ? (
