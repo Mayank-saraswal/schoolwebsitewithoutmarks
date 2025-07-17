@@ -24,8 +24,8 @@ import {
 } from 'lucide-react';
 import { useAdminAPI } from '../context/AdminContext';
 
-const StudentList = ({ refreshTrigger, onEditStudent, onStudentDeleted }) => {
-  const { getAuthToken } = useAuth();
+const StudentList = ({ refreshTrigger, onEditStudent, onStudentDeleted, mode = 'teacher' }) => {
+  const { getAuthToken, teacher } = useAuth();
   const { getStudents, selectedMedium, selectedYear, isReady } = useAdminAPI();
   
   const [students, setStudents] = useState([]);
@@ -49,13 +49,41 @@ const StudentList = ({ refreshTrigger, onEditStudent, onStudentDeleted }) => {
 
   // Load students data
   const loadStudents = async () => {
-    if (!isReady) return;
+    // For teacher mode, don't require admin context to be ready
+    if (mode === 'admin' && !isReady) return;
     
     try {
       setLoading(true);
       setError(null);
       
-      const response = await getStudents(filters);
+      let response;
+      
+      if (mode === 'teacher') {
+        // Use teacher API endpoint
+        const queryParams = new URLSearchParams({
+          ...filters,
+          academicYear: new Date().getFullYear().toString()
+        });
+        
+        const res = await fetch(`/api/students/my-students?${queryParams}`, {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        const data = await res.json();
+        
+        if (res.ok && data.success) {
+          response = data;
+        } else {
+          throw new Error(data.message || 'Failed to load students');
+        }
+      } else {
+        // Use admin API endpoint
+        response = await getStudents(filters);
+      }
       
       if (response.success) {
         setStudents(response.data);
@@ -74,8 +102,11 @@ const StudentList = ({ refreshTrigger, onEditStudent, onStudentDeleted }) => {
 
   // Load data when filters or year/medium changes
   useEffect(() => {
-    loadStudents();
-  }, [filters, selectedYear, selectedMedium, isReady]);
+    // For teacher mode, load immediately. For admin mode, wait for context.
+    if (mode === 'teacher' || isReady) {
+      loadStudents();
+    }
+  }, [filters, selectedYear, selectedMedium, isReady, mode]);
 
   // Refresh data when refreshTrigger changes
   useEffect(() => {
@@ -359,17 +390,21 @@ const StudentList = ({ refreshTrigger, onEditStudent, onStudentDeleted }) => {
                   <div className="flex items-center">
                     <FileText className="h-4 w-4 text-blue-600 mr-3" />
                     <div>
-                      <p className="text-sm text-blue-600">Subjects ({student.subjects.length})</p>
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {student.subjects.slice(0, 3).map((subject, index) => (
-                          <span key={index} className="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded">
-                            {subject}
-                          </span>
-                        ))}
-                        {student.subjects.length > 3 && (
-                          <span className="text-xs text-blue-600">+{student.subjects.length - 3} more</span>
-                        )}
-                      </div>
+                      <p className="text-sm text-blue-600">Subjects ({student.subjects?.length || 0})</p>
+                      {student.subjects && student.subjects.length > 0 ? (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {student.subjects.slice(0, 3).map((subject, index) => (
+                            <span key={index} className="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded">
+                              {subject}
+                            </span>
+                          ))}
+                          {student.subjects.length > 3 && (
+                            <span className="text-xs text-blue-600">+{student.subjects.length - 3} more</span>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-500 mt-1">No subjects found</p>
+                      )}
                     </div>
                   </div>
                 </div>

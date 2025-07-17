@@ -1,7 +1,6 @@
 import Student from '../models/Student.js';
 import Teacher from '../models/Teacher.js';
 import Announcement from '../models/Announcement.js';
-import ExamType from '../models/ExamType.js';
 import Admission from '../models/Admission.js';
 import AuditLog from '../models/AuditLog.js';
 import AuditLogger from '../utils/auditLogger.js';
@@ -47,7 +46,6 @@ export const getAdminStats = async (req, res) => {
       teacherStats,
       admissionStats,
       announcementStats,
-      examStats,
       feeStats
     ] = await Promise.all([
       // Student Statistics
@@ -172,32 +170,6 @@ export const getAdminStats = async (req, res) => {
         }
       ]),
 
-      // Exam Type Statistics
-      ExamType.aggregate([
-        { $match: { medium, year: yearNum } },
-        {
-          $group: {
-            _id: null,
-            totalExamTypes: { $sum: 1 },
-            upcomingExams: {
-              $sum: {
-                $cond: [
-                  { $gte: ['$examDate', new Date()] },
-                  1,
-                  0
-                ]
-              }
-            },
-            examsByClass: {
-              $push: {
-                class: '$class',
-                examType: '$examType'
-              }
-            }
-          }
-        }
-      ]),
-
       // Fee Statistics (more detailed)
       Student.aggregate([
         { $match: baseFilter },
@@ -250,12 +222,6 @@ export const getAdminStats = async (req, res) => {
       publicAnnouncements: 0,
       dashboardAnnouncements: 0,
       recentAnnouncements: 0
-    };
-
-    const examData = examStats[0] || {
-      totalExamTypes: 0,
-      upcomingExams: 0,
-      examsByClass: []
     };
 
     // Process fee data
@@ -342,10 +308,6 @@ export const getAdminStats = async (req, res) => {
           public: announcementData.publicAnnouncements,
           dashboard: announcementData.dashboardAnnouncements,
           recent: announcementData.recentAnnouncements
-        },
-        exams: {
-          totalTypes: examData.totalExamTypes,
-          upcoming: examData.upcomingExams
         }
       }
     };

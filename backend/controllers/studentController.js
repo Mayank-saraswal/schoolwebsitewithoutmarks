@@ -221,7 +221,8 @@ export const createStudent = async (req, res) => {
       },
       createdBy: teacherId === '000000000000000000000001' ? new mongoose.Types.ObjectId('000000000000000000000001') : new mongoose.Types.ObjectId(teacherId),
       createdByName: teacher.fullName,
-      notes: notes || ''
+      notes: notes || '',
+      subjects: Array.isArray(req.body.subjects) ? req.body.subjects : []
     };
 
     // Create and save student
@@ -391,13 +392,16 @@ export const getMyStudents = async (req, res) => {
       academicYear
     } = req.query;
 
-    // Build query
-    const query = { createdBy: teacherId };
+  // Build query - include teacher's medium from JWT
+  const query = { 
+    createdBy: teacherId,
+    medium: req.teacher.medium // Filter by teacher's medium
+  };
 
-    // Apply filters
-    if (filterClass && filterClass !== 'all') {
-      query.class = filterClass;
-    }
+  // Apply filters
+  if (filterClass && filterClass !== 'all') {
+    query.class = filterClass;
+  }
 
     if (feeStatus && feeStatus !== 'all') {
       query.feeStatus = feeStatus;

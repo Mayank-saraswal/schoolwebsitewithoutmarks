@@ -7,184 +7,141 @@ const ToppersSection = ({ onApplyNowClick }) => {
   const toppers = [
     {
       id: 1,
-      name: "Priya Sharma",
-      score: "98.5%",
-      subject: "Science Stream",
-      image: "https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80",
-      achievement: "State Topper",
+      name: "",
+      score: "",
+      subject: "",
+      image: "images/topper1.jpg",
+      achievement: "",
       year: "2024"
     },
     {
       id: 2,
-      name: "Arjun Patel",
+      name: "l",
       score: "97.8%",
-      subject: "Commerce Stream",
-      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80",
-      achievement: "District Topper",
+      subject: "",
+      image: "images/topper2.jpg",
+      achievement: "",
       year: "2024"
     },
     {
       id: 3,
-      name: "Ananya Singh",
+      name: "",
       score: "96.9%",
-      subject: "Arts Stream",
-      image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
+      subject: "",
+      image: "images/topper3.jpg",
       achievement: "School Topper",
       year: "2024"
     },
     {
       id: 4,
-      name: "Ravi Kumar",
-      score: "98.2%",
-      subject: "Science Stream",
-      image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-      achievement: "National Merit",
+      name: "",
+      score: "",
+      subject: "",
+      image: "images/topper4.jpg",
+      achievement: "",
       year: "2024"
     },
     {
       id: 5,
-      name: "Sneha Gupta",
+      name: "",
       score: "97.5%",
-      subject: "Commerce Stream",
-      image: "https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1374&q=80",
-      achievement: "Gold Medal",
+      subject: "",
+      image: "images/topper5.jpg",
+      achievement: "",
       year: "2024"
     },
     {
       id: 6,
-      name: "आदित्य शर्मा",
+      name: "",
       score: "96.7%",
-      subject: "Arts Stream",
-      image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1374&q=80",
-      achievement: "School Topper",
+      subject: " ",
+      image: "images/topper6.jpg",
+      achievement: "",
       year: "2023"
     },
     {
       id: 7,
-      name: "Kavya Reddy",
+      name: "",
       score: "98.1%",
-      subject: "Science Stream",
-      image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1288&q=80",
-      achievement: "District Topper",
+      subject: "",
+      image: "images/topper7.jpg",
+      achievement: "",
       year: "2024"
     },
     {
       id: 8,
-      name: "विकास मिश्रा",
+      name: "",
       score: "97.3%",
-      subject: "Commerce Stream",
-      image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1374&q=80",
-      achievement: "Excellence Award",
+      subject: "",
+      image: "images/topper8.jpg",
+      achievement: "",
       year: "2024"
     },
     {
       id: 9,
-      name: "Ishita Jain",
+      name: "",
       score: "96.5%",
       subject: "Arts Stream",
-      image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1364&q=80",
+      image: "images/topper9.jpg",
       achievement: "Creative Arts",
       year: "2023"
     },
     {
       id: 10,
-      name: "Karan Singh",
+      name: "",
       score: "97.9%",
       subject: "Science Stream",
-      image: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1374&q=80",
+      image: "images/topper10.jpg",
       achievement: "Physics Olympiad",
       year: "2024"
     },
     {
       id: 11,
-      name: "प्रिया वर्मा",
+      name: "",
       score: "96.8%",
-      subject: "Commerce Stream",
-      image: "https://images.unsplash.com/photo-1521252659862-eec69941b071?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1364&q=80",
-      achievement: "Business Studies",
+      subject: "",
+      image: "images/topper11.jpg",
+      achievement: "",
       year: "2024"
     },
     {
       id: 12,
-      name: "Rahul Mehta",
+      name: "",
       score: "97.6%",
-      subject: "Science Stream",
-      image: "https://images.unsplash.com/photo-1463453091185-61582044d556?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
-      achievement: "Chemistry Expert",
+      subject: "",
+      image: "images/topper12.jpg",
+      achievement: "",
       year: "2023"
     },
     {
       id: 13,
-      name: "Neha Agarwal",
+      name: "",
       score: "96.4%",
-      subject: "Arts Stream",
-      image: "https://images.unsplash.com/photo-1541101767792-f9b2b1c4f127?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
-      achievement: "Literature Prize",
+      subject: "",
+      image: "images/topper13.jpg",
+      achievement: "",
       year: "2024"
     },
     {
       id: 14,
-      name: "अमित यादव",
+      name: "",
       score: "97.1%",
-      subject: "Commerce Stream",
-      image: "https://images.unsplash.com/photo-1507591064344-4c6ce005b128?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1498&q=80",
-      achievement: "Economics Star",
+      subject: "",
+      image: "images/topper14.jpg",
+      achievement: "",
       year: "2024"
     },
     {
       id: 15,
-      name: "Sakshi Tiwari",
+      name: "",
       score: "98.0%",
-      subject: "Science Stream",
-      image: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1374&q=80",
-      achievement: "Math Genius",
+      subject: "",
+      image: "images/topper15.jpg",
+      achievement: "",
       year: "2024"
     },
-    {
-      id: 16,
-      name: "Harsh Kapoor",
-      score: "96.6%",
-      subject: "Arts Stream",
-      image: "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1331&q=80",
-      achievement: "History Scholar",
-      year: "2023"
-    },
-    {
-      id: 17,
-      name: "दीप्ति राज",
-      score: "97.4%",
-      subject: "Science Stream",
-      image: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1380&q=80",
-      achievement: "Biology Expert",
-      year: "2024"
-    },
-    {
-      id: 18,
-      name: "Rohit Sinha",
-      score: "96.3%",
-      subject: "Commerce Stream",
-      image: "https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1374&q=80",
-      achievement: "Accounts Pro",
-      year: "2023"
-    },
-    {
-      id: 19,
-      name: "Meera Malhotra",
-      score: "97.7%",
-      subject: "Arts Stream",
-      image: "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1374&q=80",
-      achievement: "Political Science",
-      year: "2024"
-    },
-    {
-      id: 20,
-      name: "आकाश खान",
-      score: "98.3%",
-      subject: "Science Stream",
-      image: "https://images.unsplash.com/photo-1502823403499-6ccfcf4fb453?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1374&q=80",
-      achievement: "State Merit",
-      year: "2024"
-    }
+    
+  
   ];
 
   return (
