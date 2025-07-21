@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import { useTeacher } from '../context/TeacherContext';
 import { 
   User, 
   Users, 
@@ -22,6 +23,7 @@ import {
 
 const StudentCreateForm = ({ onStudentCreated, onCancel }) => {
   const { teacher, getAuthToken } = useAuth();
+  const { selectedMedium, createStudent, getNextSRNumber, getFormConfig, isReady } = useTeacher();
   
   const [formData, setFormData] = useState({
     studentName: '',
@@ -58,18 +60,20 @@ const StudentCreateForm = ({ onStudentCreated, onCancel }) => {
 
   // Auto-generate SR Number on component mount
   useEffect(() => {
-    if (teacher) {
+    if (teacher && isReady) {
       fetchNextSRNumber();
-      // Set teacher's medium as default
+      // Set teacher's medium from context
       setFormData(prev => ({
         ...prev,
-        medium: teacher.medium || 'Hindi'
+        medium: selectedMedium || teacher.medium || 'Hindi'
       }));
+      console.log('🎓 Setting teacher medium from context:', selectedMedium);
+      
       if (formData.class) {
         fetchFormConfig(formData.class);
       }
     }
-  }, [teacher]);
+  }, [teacher, isReady, selectedMedium]);
 
   // Fetch form configuration when class or medium changes
   useEffect(() => {

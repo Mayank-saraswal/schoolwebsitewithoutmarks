@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import { AuthProvider } from './context/AuthContext';
 import { AdminProvider } from './context/AdminContext';
 import { ParentProvider } from './context/ParentContext';
+import { TeacherProvider } from './context/TeacherContext';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './App.css';
@@ -24,6 +25,7 @@ const TeacherDashboard = React.lazy(() => import('./pages/TeacherDashboard'));
 const ParentLogin = React.lazy(() => import('./pages/ParentLogin'));
 const ParentDashboard = React.lazy(() => import('./pages/ParentDashboard'));
 const FeePaymentPage = React.lazy(() => import('./pages/FeePaymentPage'));
+const PaymentProcessPage = React.lazy(() => import('./pages/PaymentProcessPage'));
 
 const LoadingSpinner = () => (
   <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
@@ -52,7 +54,8 @@ const AppContent = () => {
     '/admin/dashboard',
     '/admin/medium-select',
     '/teacher/dashboard',
-    '/parent/dashboard'
+    '/parent/dashboard',
+    '/parent/payment'
   ];
   
   const isDashboardRoute = dashboardRoutes.some(route => 
@@ -95,6 +98,16 @@ const AppContent = () => {
                 <ParentDashboard />
               </ParentProtectedRoute>
             } />
+            <Route path="/parent/payment" element={
+              <ParentProtectedRoute>
+                <FeePaymentPage />
+              </ParentProtectedRoute>
+            } />
+            <Route path="/parent/payment/process" element={
+              <ParentProtectedRoute>
+                <PaymentProcessPage />
+              </ParentProtectedRoute>
+            } />
             <Route path="/fee-payment/:studentId" element={<FeePaymentPage />} />
           </Routes>
         </Suspense>
@@ -125,7 +138,9 @@ function App() {
       <AuthProvider>
         <AdminProvider>
           <ParentProvider>
-            <AppContent />
+            <TeacherProvider>
+              <AppContent />
+            </TeacherProvider>
           </ParentProvider>
         </AdminProvider>
       </AuthProvider>

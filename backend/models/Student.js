@@ -212,6 +212,13 @@ const studentSchema = new mongoose.Schema({
     type: String,
     default: function() {
       return new Date().getFullYear().toString();
+    },
+    validate: {
+      validator: function(year) {
+        const yearNum = parseInt(year);
+        return !isNaN(yearNum) && yearNum >= 2020 && yearNum <= 2030;
+      },
+      message: 'Academic year must be between 2020 and 2030'
     }
   },
   createdBy: {

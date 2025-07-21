@@ -44,12 +44,18 @@ const FeeStatusPanel = ({ studentId }) => {
   };
 
   const formatCurrency = (amount) => {
+    // Safely handle undefined, null, or NaN values
+    const safeAmount = Number(amount || 0);
+    if (isNaN(safeAmount)) {
+      return '₹0';
+    }
+    
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
-    }).format(amount);
+    }).format(safeAmount);
   };
 
   if (loading) {

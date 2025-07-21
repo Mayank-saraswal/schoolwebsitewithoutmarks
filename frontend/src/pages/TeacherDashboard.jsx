@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useTeacher } from '../context/TeacherContext';
 import { useNavigate } from 'react-router-dom';
 import StudentCreateForm from '../components/StudentCreateForm';
 import StudentEditForm from '../components/StudentEditForm';
@@ -28,6 +29,7 @@ import { useState } from 'react';
 
 const TeacherDashboard = () => {
   const { teacher, logout, isAuthenticated, hasRole, loading } = useAuth();
+  const { selectedMedium, selectedYear, isReady } = useTeacher();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -271,8 +273,22 @@ const TeacherDashboard = () => {
               
               <div className="flex items-center space-x-4">
                 <div className="text-right">
-                  <p className="text-sm font-medium text-gray-900">{teacher.medium} Medium</p>
-                  <p className="text-xs text-gray-500">{teacher.classTeacherOf}</p>
+                  <div className="flex items-center space-x-2">
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      selectedMedium === 'Hindi' 
+                        ? 'bg-orange-100 text-orange-800 border border-orange-200' 
+                        : 'bg-blue-100 text-blue-800 border border-blue-200'
+                    }`}>
+                      {selectedMedium || teacher.medium} Medium
+                    </span>
+                    <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-sm font-medium">
+                      {selectedYear}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">{teacher.classTeacherOf}</p>
+                  {isReady && (
+                    <p className="text-xs text-green-600 mt-1">✓ Context Ready</p>
+                  )}
                 </div>
                 <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
                   <User className="h-5 w-5 text-blue-600" />
@@ -426,6 +442,7 @@ const TeacherDashboard = () => {
 
             {activeTab === 'my-students' && (
               <StudentList 
+                mode="teacher"
                 refreshTrigger={refreshStudents} 
                 onEditStudent={handleEditStudent}
                 onStudentDeleted={handleStudentDeleted}

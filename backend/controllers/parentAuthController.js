@@ -156,7 +156,7 @@ export const getStudentFees = async (req, res) => {
 
     // Get student fee details
     const student = await Student.findById(studentId).select(
-      'studentName class classFee busFee feePaidClass feePaidBus feeStatus hasBus'
+      'studentName class classFee busFee feeStatus hasBus'
     );
 
     if (!student) {
@@ -166,9 +166,15 @@ export const getStudentFees = async (req, res) => {
       });
     }
 
+    // Safely extract fee data with fallbacks
+    const classFeeTotal = Number(student.classFee?.total || 0);
+    const classFeePaid = Number(student.classFee?.paid || 0);
+    const busFeeTotal = Number(student.busFee?.total || 0);
+    const busFeePaid = Number(student.busFee?.paid || 0);
+
     // Calculate fee details
-    const classFeeBalance = Math.max(0, student.classFee - student.feePaidClass);
-    const busFeeBalance = Math.max(0, student.busFee - student.feePaidBus);
+    const classFeeBalance = Math.max(0, classFeeTotal - classFeePaid);
+    const busFeeBalance = Math.max(0, busFeeTotal - busFeePaid);
 
     const feeDetails = {
       student: {
@@ -176,23 +182,23 @@ export const getStudentFees = async (req, res) => {
         class: student.class
       },
       classFee: {
-        total: student.classFee,
-        paid: student.feePaidClass,
+        total: classFeeTotal,
+        paid: classFeePaid,
         pending: classFeeBalance,
-        status: classFeeBalance === 0 ? 'Paid' : student.feePaidClass > 0 ? 'Partial' : 'Unpaid'
+        status: classFeeBalance === 0 ? 'Paid' : classFeePaid > 0 ? 'Partial' : 'Unpaid'
       },
       busFee: {
-        total: student.busFee,
-        paid: student.feePaidBus,
+        total: busFeeTotal,
+        paid: busFeePaid,
         pending: busFeeBalance,
-        status: busFeeBalance === 0 ? 'Paid' : student.feePaidBus > 0 ? 'Partial' : 'Unpaid',
-        applicable: student.hasBus
+        status: busFeeBalance === 0 ? 'Paid' : busFeePaid > 0 ? 'Partial' : 'Unpaid',
+        applicable: student.hasBus || false
       },
       overall: {
-        totalFees: student.classFee + student.busFee,
-        totalPaid: student.feePaidClass + student.feePaidBus,
+        totalFees: classFeeTotal + busFeeTotal,
+        totalPaid: classFeePaid + busFeePaid,
         totalPending: classFeeBalance + busFeeBalance,
-        status: student.feeStatus
+        status: student.feeStatus || 'Unpaid'
       }
     };
 

@@ -12,6 +12,14 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET || 'XXXXXXXXXXXXXXXXX'
 });
 
+// Check if Razorpay credentials are configured
+const isRazorpayConfigured = () => {
+  return process.env.RAZORPAY_KEY_ID &&
+    process.env.RAZORPAY_KEY_SECRET &&
+    process.env.RAZORPAY_KEY_ID !== 'your-razorpay-key-id' &&
+    process.env.RAZORPAY_KEY_SECRET !== 'your-razorpay-key-secret';
+};
+
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -50,6 +58,14 @@ export const createPaymentOrder = async (req, res) => {
     const { studentId, type, amount } = req.body;
     const parent = req.parent;
 
+    // Check if Razorpay is configured
+    if (!isRazorpayConfigured()) {
+      return res.status(500).json({
+        success: false,
+        message: 'भुगतान सेवा कॉन्फ़िगर नहीं है। कृपया व्यवस्थापक से संपर्क करें / Payment service not configured. Please contact administrator'
+      });
+    }
+
     // Validation
     if (!studentId || !type || !amount) {
       return res.status(400).json({
@@ -84,9 +100,9 @@ export const createPaymentOrder = async (req, res) => {
     }
 
     // Validate amount against pending fees
-    const classFeeBalance = Math.max(0, student.classFee - student.feePaidClass);
-    const busFeeBalance = Math.max(0, student.busFee - student.feePaidBus);
-    
+    const classFeeBalance = Math.max(0, (student.classFee?.total || 0) - (student.classFee?.paid || 0));
+    const busFeeBalance = Math.max(0, (student.busFee?.total || 0) - (student.busFee?.paid || 0));
+
     let maxAmount = 0;
     if (type === 'class') {
       maxAmount = classFeeBalance;
@@ -381,9 +397,9 @@ export const processPaymentRequest = async (req, res) => {
       const student = await Student.findById(paymentRequest.studentId);
       if (student) {
         if (paymentRequest.type === 'class') {
-          student.feePaidClass += paymentRequest.amount;
+          student.classFee.paid = (student.classFee.paid || 0) + paymentRequest.amount;
         } else if (paymentRequest.type === 'bus') {
-          student.feePaidBus += paymentRequest.amount;
+          student.busFee.paid = (student.busFee.paid || 0) + paymentRequest.amount;
         }
         await student.save(); // This will trigger the pre-save middleware to update fee status
       }
@@ -393,7 +409,7 @@ export const processPaymentRequest = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: action === 'approve' 
+      message: action === 'approve'
         ? 'भुगतान अनुरोध स्वीकृत किया गया / Payment request approved'
         : 'भुगतान अनुरोध अस्वीकार किया गया / Payment request rejected',
       data: {

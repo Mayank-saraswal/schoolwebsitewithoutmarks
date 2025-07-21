@@ -219,11 +219,14 @@ export const createStudent = async (req, res) => {
         paid: 0,
         pending: busRouteFee || 0
       },
+      academicYear: new Date().getFullYear().toString(), // Ensure academic year is set as string
       createdBy: teacherId === '000000000000000000000001' ? new mongoose.Types.ObjectId('000000000000000000000001') : new mongoose.Types.ObjectId(teacherId),
       createdByName: teacher.fullName,
       notes: notes || '',
       subjects: Array.isArray(req.body.subjects) ? req.body.subjects : []
     };
+
+    console.log('🎓 Student data with academic year:', studentData.academicYear);
 
     // Create and save student
     const newStudent = new Student(studentData);
@@ -392,16 +395,52 @@ export const getMyStudents = async (req, res) => {
       academicYear
     } = req.query;
 
-  // Build query - include teacher's medium from JWT
-  const query = { 
-    createdBy: teacherId,
-    medium: req.teacher.medium // Filter by teacher's medium
-  };
+    console.log('🎓 getMyStudents called with:', {
+      teacherId,
+      teacherMedium: req.teacher.medium,
+      filters: { page, limit, filterClass, feeStatus, hasBus, search, academicYear }
+    });
 
-  // Apply filters
-  if (filterClass && filterClass !== 'all') {
-    query.class = filterClass;
-  }
+    // Build query - MUST include teacher's medium and current academic year
+    const query = { 
+      createdBy: teacherId
+    };
+
+    // Handle medium filtering for both teachers and admins
+    if (req.teacher.type === 'admin') {
+      // For admin users, allow access to all mediums or filter by specific medium
+      const { medium: queryMedium } = req.query;
+      if (queryMedium && ['Hindi', 'English'].includes(queryMedium)) {
+        query.medium = queryMedium;
+        console.log('👨‍💼 Admin filtering students by medium:', queryMedium);
+      } else {
+        // Admin can access all mediums - no medium filter applied
+        console.log('👨‍💼 Admin accessing students from all mediums');
+      }
+    } else if (req.teacher.medium) {
+      // For regular teachers, use their assigned medium
+      query.medium = req.teacher.medium;
+      console.log('🎓 Filtering students by teacher medium:', req.teacher.medium);
+    } else {
+      console.warn('⚠️ Teacher medium not found in JWT token');
+      return res.status(400).json({
+        success: false,
+        message: 'शिक्षक प्रोफाइल में माध्यम नहीं मिला / Teacher medium not found in profile',
+        hint: 'कृपया व्यवस्थापक से संपर्क करें / Please contact administrator',
+        code: 'MEDIUM_NOT_FOUND'
+      });
+    }
+
+    // Add academic year filter - use current year if not specified
+    const currentYear = new Date().getFullYear();
+    const yearToFilter = academicYear && academicYear !== 'all' ? academicYear.toString() : currentYear.toString();
+    query.academicYear = yearToFilter;
+    console.log('🎓 Filtering students by academic year:', yearToFilter);
+
+    // Apply additional filters
+    if (filterClass && filterClass !== 'all') {
+      query.class = filterClass;
+    }
 
     if (feeStatus && feeStatus !== 'all') {
       query.feeStatus = feeStatus;
@@ -426,6 +465,8 @@ export const getMyStudents = async (req, res) => {
       ];
     }
 
+    console.log('🔍 Final query for students:', JSON.stringify(query, null, 2));
+
     // Execute query with pagination
     const students = await Student.find(query)
       .sort({ createdAt: -1 })
@@ -434,11 +475,33 @@ export const getMyStudents = async (req, res) => {
 
     const total = await Student.countDocuments(query);
 
-    // Get statistics for teacher's students
-    const stats = await Student.getStats({ createdBy: teacherId });
+    console.log(`📊 Found ${students.length} students out of ${total} total matching query`);
+
+    // Get statistics for teacher's students with same filters
+    const statsQuery = {
+      createdBy: teacherId,
+      academicYear: yearToFilter
+    };
+    
+    // Add medium to stats query only if it's being filtered
+    if (query.medium) {
+      statsQuery.medium = query.medium;
+    }
+    
+    const stats = await Student.getStats(statsQuery);
+
+    // Determine response message based on user type and filters
+    let responseMessage;
+    if (req.teacher.type === 'admin') {
+      const mediumText = query.medium ? `${query.medium} medium` : 'all mediums';
+      responseMessage = `Found ${students.length} students for ${mediumText}`;
+    } else {
+      responseMessage = `Found ${students.length} students for ${req.teacher.medium} medium`;
+    }
 
     res.status(200).json({
       success: true,
+      message: responseMessage,
       data: students.map(student => student.getProfileData()),
       stats: stats[0] || {
         total: 0,
@@ -448,6 +511,12 @@ export const getMyStudents = async (req, res) => {
         feeUnpaid: 0,
         withBus: 0,
         withoutBus: 0
+      },
+      filters: {
+        medium: query.medium || 'all',
+        academicYear: yearToFilter,
+        teacherId: teacherId,
+        userType: req.teacher.type || 'teacher'
       },
       pagination: {
         currentPage: parseInt(page),
@@ -723,11 +792,11 @@ export const getAdminStudents = async (req, res) => {
       search
     } = req.query;
 
-    // Validate required filters
-    if (!medium || !year) {
+    // Validate required filters - year is required, medium is optional
+    if (!year) {
       return res.status(400).json({
         success: false,
-        message: 'माध्यम और वर्ष आवश्यक हैं / Medium and year are required'
+        message: 'वर्ष आवश्यक है / Year is required'
       });
     }
 
@@ -740,19 +809,23 @@ export const getAdminStudents = async (req, res) => {
       });
     }
 
-    // Validate medium
-    if (!['Hindi', 'English'].includes(medium)) {
-      return res.status(400).json({
-        success: false,
-        message: 'अमान्य माध्यम / Invalid medium'
-      });
+    // Build query with required filters - use string for academicYear
+    const query = {
+      academicYear: year.toString()
+    };
+
+    // Add medium filter only if specified and valid
+    if (medium) {
+      if (!['Hindi', 'English'].includes(medium)) {
+        return res.status(400).json({
+          success: false,
+          message: 'अमान्य माध्यम / Invalid medium'
+        });
+      }
+      query.medium = medium;
     }
 
-    // Build query with required filters
-    const query = {
-      medium: medium,
-      academicYear: yearNum
-    };
+    console.log('👨‍💼 Admin getStudents query:', JSON.stringify(query, null, 2));
 
     // Additional filters
     if (classFilter && classFilter !== 'all') {
@@ -788,6 +861,9 @@ export const getAdminStudents = async (req, res) => {
 
     const total = await Student.countDocuments(query);
 
+    const mediumText = medium ? `${medium} medium` : 'all mediums';
+    console.log(`👨‍💼 Admin found ${students.length} students out of ${total} total for ${mediumText}, year ${year}`);
+
     // Get statistics for filtered students
     const stats = await Student.aggregate([
       { $match: query },
@@ -806,7 +882,7 @@ export const getAdminStudents = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'छात्र सफलतापूर्वक प्राप्त हुए / Students retrieved successfully',
+      message: `छात्र सफलतापूर्वक प्राप्त हुए / Students retrieved successfully (${mediumText})`,
       data: students,
       stats: stats[0] || {
         total: 0,
@@ -817,8 +893,8 @@ export const getAdminStudents = async (req, res) => {
         withoutBus: 0
       },
       filters: {
-        medium,
-        year: yearNum,
+        medium: medium || 'all',
+        year: year,
         class: classFilter || 'all',
         feeStatus: feeStatus || 'all',
         hasBus: hasBus || 'all',

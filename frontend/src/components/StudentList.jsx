@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import { useTeacher } from '../context/TeacherContext';
 import { 
   Users, 
   Search, 
@@ -27,6 +28,7 @@ import { useAdminAPI } from '../context/AdminContext';
 const StudentList = ({ refreshTrigger, onEditStudent, onStudentDeleted, mode = 'teacher' }) => {
   const { getAuthToken, teacher } = useAuth();
   const { getStudents, selectedMedium, selectedYear, isReady } = useAdminAPI();
+  const { getMyStudents, isReady: teacherReady, selectedMedium: teacherMedium } = useTeacher();
   
   const [students, setStudents] = useState([]);
   const [stats, setStats] = useState({});
@@ -49,8 +51,17 @@ const StudentList = ({ refreshTrigger, onEditStudent, onStudentDeleted, mode = '
 
   // Load students data
   const loadStudents = async () => {
-    // For teacher mode, don't require admin context to be ready
-    if (mode === 'admin' && !isReady) return;
+    // For teacher mode, check if teacher context is ready
+    if (mode === 'teacher' && !teacherReady) {
+      console.log('🎓 Teacher context not ready yet');
+      return;
+    }
+    
+    // For admin mode, check if admin context is ready
+    if (mode === 'admin' && !isReady) {
+      console.log('👨‍💼 Admin context not ready yet');
+      return;
+    }
     
     try {
       setLoading(true);
@@ -59,29 +70,14 @@ const StudentList = ({ refreshTrigger, onEditStudent, onStudentDeleted, mode = '
       let response;
       
       if (mode === 'teacher') {
-        // Use teacher API endpoint
-        const queryParams = new URLSearchParams({
-          ...filters,
-          academicYear: new Date().getFullYear().toString()
-        });
-        
-        const res = await fetch(`/api/students/my-students?${queryParams}`, {
-          method: 'GET',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        const data = await res.json();
-        
-        if (res.ok && data.success) {
-          response = data;
-        } else {
-          throw new Error(data.message || 'Failed to load students');
-        }
+        // Use teacher context method
+        console.log('🎓 Loading students using teacher context with filters:', filters);
+        console.log('🎓 Teacher medium:', teacherMedium);
+        response = await getMyStudents(filters);
       } else {
         // Use admin API endpoint
+        console.log('👨‍💼 Loading students using admin context with filters:', filters);
+        console.log('👨‍💼 Admin medium/year:', selectedMedium, selectedYear);
         response = await getStudents(filters);
       }
       
@@ -89,12 +85,16 @@ const StudentList = ({ refreshTrigger, onEditStudent, onStudentDeleted, mode = '
         setStudents(response.data);
         setStats(response.stats);
         setPagination(response.pagination);
+        console.log(`✅ Loaded ${response.data.length} students`);
+        console.log('📊 Response stats:', response.stats);
+        console.log('🔍 Applied filters:', response.filters);
       } else {
         setError(response.message || 'Failed to load students');
+        console.error('❌ Load students failed:', response);
       }
     } catch (err) {
-      console.error('Error loading students:', err);
-      setError('Failed to load students data');
+      console.error('❌ Error loading students:', err);
+      setError(`Failed to load students data: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -102,11 +102,15 @@ const StudentList = ({ refreshTrigger, onEditStudent, onStudentDeleted, mode = '
 
   // Load data when filters or year/medium changes
   useEffect(() => {
-    // For teacher mode, load immediately. For admin mode, wait for context.
-    if (mode === 'teacher' || isReady) {
+    // For teacher mode, wait for teacher context to be ready
+    if (mode === 'teacher' && teacherReady) {
       loadStudents();
     }
-  }, [filters, selectedYear, selectedMedium, isReady, mode]);
+    // For admin mode, wait for admin context to be ready
+    else if (mode === 'admin' && isReady) {
+      loadStudents();
+    }
+  }, [filters, selectedYear, selectedMedium, isReady, teacherReady, mode]);
 
   // Refresh data when refreshTrigger changes
   useEffect(() => {
@@ -524,7 +528,24 @@ const StudentList = ({ refreshTrigger, onEditStudent, onStudentDeleted, mode = '
     );
   };
 
-  if (!isReady) {
+  // For teacher mode, show message if no medium available
+  if (mode === 'teacher' && !teacher?.medium) {
+    return (
+      <div className="p-6 bg-blue-50 rounded-lg">
+        <div className="text-center">
+          <div className="text-blue-600 mb-2">
+            शिक्षक प्रोफ़ाइल में माध्यम नहीं मिला / Teacher medium not found in profile
+          </div>
+          <p className="text-sm text-gray-600">
+            कृपया व्यवस्थापक से संपर्क करें / Please contact administrator
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // For admin mode, check if context is ready
+  if (mode === 'admin' && !isReady) {
     return (
       <div className="p-6 bg-blue-50 rounded-lg">
         <div className="text-center">
@@ -545,10 +566,10 @@ const StudentList = ({ refreshTrigger, onEditStudent, onStudentDeleted, mode = '
         </h2>
         <div className="text-sm opacity-90">
           <span className="bg-blue-800 px-2 py-1 rounded mr-2">
-            {selectedMedium} Medium
+            {mode === 'teacher' ? teacher?.medium : selectedMedium} Medium
           </span>
           <span className="bg-blue-800 px-2 py-1 rounded">
-            Academic Year: {selectedYear}
+            Academic Year: {mode === 'teacher' ? new Date().getFullYear() : selectedYear}
           </span>
         </div>
       </div>
