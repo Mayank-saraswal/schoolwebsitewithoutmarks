@@ -9,12 +9,20 @@ import {
 } from '../controllers/adminAuthController.js';
 import { getAdminAdmissions, getAdmissionStats, getDebugAdmissions } from '../controllers/admissionController.js';
 import { getAdminStudents } from '../controllers/studentController.js';
-import { getAdminTeachers } from '../controllers/teacherController.js';
 import { 
   getAdminStats,
   getAuditLogs,
   getAuditStats 
 } from '../controllers/adminStatsController.js';
+import {
+  addStudent,
+  getStudents,
+  createExamConfig,
+  getExamConfigs,
+  getSubjectsForClass,
+  updateExamConfig,
+  deleteExamConfig
+} from '../controllers/adminController.js';
 import { 
   setClassFee,
   setBusRouteFee,
@@ -54,8 +62,143 @@ router.get('/admissions/debug', verifyAdminToken, getDebugAdmissions);
 // GET /api/admin/students - Get filtered students for dashboard
 router.get('/students', verifyAdminToken, getAdminStudents);
 
-// GET /api/admin/teachers - Get filtered teachers for dashboard
-router.get('/teachers', verifyAdminToken, getAdminTeachers);
+// Teacher routes removed - functionality moved to admin-only management
+
+// ===== STUDENT MANAGEMENT ROUTES =====
+// GET /api/admin/next-sr-number - Get next available SR number
+router.get('/next-sr-number', verifyAdminToken, async (req, res) => {
+  try {
+    const Student = (await import('../models/Student.js')).default;
+    const currentYear = new Date().getFullYear();
+    
+    // Find the highest SR number for current year
+    const lastStudent = await Student.findOne({
+      srNumber: { $regex: `^SR${currentYear}` }
+    }).sort({ srNumber: -1 });
+    
+    let nextNumber = 1;
+    if (lastStudent) {
+      const lastNumber = parseInt(lastStudent.srNumber.replace(`SR${currentYear}`, ''));
+      nextNumber = lastNumber + 1;
+    }
+    
+    const nextSRNumber = `SR${currentYear}${nextNumber.toString().padStart(3, '0')}`;
+    
+    res.json({
+      success: true,
+      data: { nextSRNumber }
+    });
+  } catch (error) {
+    console.error('Error generating SR number:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to generate SR number'
+    });
+  }
+});
+
+// GET /api/admin/bus-routes - Get all active bus routes
+router.get('/bus-routes', verifyAdminToken, async (req, res) => {
+  try {
+    const BusRoute = (await import('../models/BusRoute.js')).default;
+    const routes = await BusRoute.find({ isActive: true }).sort({ routeName: 1 });
+    
+    res.json({
+      success: true,
+      data: routes.map(route => ({
+        _id: route._id,
+        routeName: route.routeName,
+        routeCode: route.routeCode,
+        fee: route.feeAmount,
+        availableSeats: route.maxStudents - (route.currentStudents || 0),
+        maxStudents: route.maxStudents,
+        currentStudents: route.currentStudents || 0
+      }))
+    });
+  } catch (error) {
+    console.error('Error fetching bus routes:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch bus routes'
+    });
+  }
+});
+
+// GET /api/admin/student-form-config - Get form configuration for student creation
+router.get('/student-form-config', verifyAdminToken, async (req, res) => {
+  try {
+    const { class: className, medium } = req.query;
+    
+    if (!className || !medium) {
+      return res.status(400).json({
+        success: false,
+        message: 'Class and medium are required'
+      });
+    }
+    
+    const ClassFee = (await import('../models/ClassFee.js')).default;
+    const Subject = (await import('../models/Subject.js')).default;
+    
+    const academicYear = new Date().getFullYear().toString();
+    
+    // Get fee structure
+    let classFee = 0;
+    try {
+      const feeStructure = await ClassFee.getFeeStructureForClass(className, medium, academicYear);
+      classFee = feeStructure ? feeStructure.totalFee : 0;
+    } catch (error) {
+      console.log('Fee structure not found for:', className, medium);
+    }
+    
+    // Get subjects
+    let subjects = [];
+    try {
+      const subjectDoc = await Subject.findOne({ class: className, medium });
+      subjects = subjectDoc ? subjectDoc.subjects : [];
+    } catch (error) {
+      console.log('Subjects not found for:', className, medium);
+    }
+    
+    res.json({
+      success: true,
+      data: {
+        subjects,
+        classFee,
+        class: className,
+        medium,
+        academicYear
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching form config:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch form configuration'
+    });
+  }
+});
+
+// POST /api/admin/add-student - Add new student (moved to adminController)
+router.post('/add-student', verifyAdminToken, addStudent);
+
+// GET /api/admin/students-list - Get students list (moved to adminController)
+router.get('/students-list', verifyAdminToken, getStudents);
+
+// ===== EXAM CONFIGURATION ROUTES =====
+// POST /api/admin/exam-setup - Create exam configuration
+router.post('/exam-setup', verifyAdminToken, createExamConfig);
+
+// GET /api/admin/exam-configs - Get exam configurations
+router.get('/exam-configs', verifyAdminToken, getExamConfigs);
+
+// GET /api/admin/subjects - Get subjects for class and medium
+router.get('/subjects', verifyAdminToken, getSubjectsForClass);
+
+// PUT /api/admin/exam-setup/:id - Update exam configuration
+router.put('/exam-setup/:id', verifyAdminToken, updateExamConfig);
+
+// DELETE /api/admin/exam-setup/:id - Delete exam configuration
+router.delete('/exam-setup/:id', verifyAdminToken, deleteExamConfig);
 
 // GET /api/admin/dashboard-stats - Get comprehensive dashboard statistics
 router.get('/dashboard-stats', verifyAdminToken, getAdminStats);

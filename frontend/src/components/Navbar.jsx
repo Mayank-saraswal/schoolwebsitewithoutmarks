@@ -84,34 +84,11 @@ const Navbar = ({ onApplyNowClick }) => {
             >
               Apply Now
             </button>
-            <div className="flex space-x-2">
-              <button 
-                onClick={() => navigate('/parent/login')}
-                className="px-4 py-2 text-sm font-medium rounded-lg border text-blue-800 border-blue-800 hover:bg-blue-800 hover:text-white transition-all duration-200">
-                Parents Login
-              </button>
-              <div className="relative group">
-                <button className="px-4 py-2 text-sm font-medium rounded-lg border text-blue-800 border-blue-800 hover:bg-blue-800 hover:text-white transition-all duration-200">
-                  Teacher ▼
-                </button>
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                  <div className="py-1">
-                    <button
-                      onClick={() => navigate('/teacher/login')}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-800"
-                    >
-                      Teacher Login / शिक्षक लॉगिन
-                    </button>
-                    <button
-                      onClick={() => navigate('/teacher/register')}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-800"
-                    >
-                      Teacher Registration / शिक्षक पंजीकरण
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <button 
+              onClick={() => navigate('/parent/login')}
+              className="px-4 py-2 text-sm font-medium rounded-lg border text-blue-800 border-blue-800 hover:bg-blue-800 hover:text-white transition-all duration-200">
+              Parents Login
+            </button>
           </div>
 
           {/* Mobile menu button */}
@@ -168,36 +145,14 @@ const Navbar = ({ onApplyNowClick }) => {
             >
               Apply Now
             </button>
-            <div className="space-y-2">
-              <button 
-                onClick={() => {
-                  navigate('/parent/login');
-                  setIsMenuOpen(false);
-                }}
-                className="w-full text-blue-800 border border-blue-800 hover:bg-blue-800 hover:text-white px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200">
-                Parents Login
-              </button>
-              <div className="flex space-x-2">
-                <button 
-                  onClick={() => {
-                    navigate('/teacher/login');
-                    setIsMenuOpen(false);
-                  }}
-                  className="flex-1 text-blue-800 border border-blue-800 hover:bg-blue-800 hover:text-white px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200"
-                >
-                  Teacher Login
-                </button>
-                <button 
-                  onClick={() => {
-                    navigate('/teacher/register');
-                    setIsMenuOpen(false);
-                  }}
-                  className="flex-1 text-blue-800 border border-blue-800 hover:bg-blue-800 hover:text-white px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200"
-                >
-                  Register
-                </button>
-              </div>
-            </div>
+            <button 
+              onClick={() => {
+                navigate('/parent/login');
+                setIsMenuOpen(false);
+              }}
+              className="w-full text-blue-800 border border-blue-800 hover:bg-blue-800 hover:text-white px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200">
+              Parents Login
+            </button>
           </div>
         </div>
       </div>

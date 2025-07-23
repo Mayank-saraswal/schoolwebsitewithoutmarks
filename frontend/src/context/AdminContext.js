@@ -151,12 +151,7 @@ export const useAdminAPI = () => {
     return apiCall(endpoint);
   };
 
-  const getTeachers = (additionalParams = {}) => {
-    const params = new URLSearchParams(additionalParams);
-    const queryString = params.toString();
-    const endpoint = `/api/admin/teachers${queryString ? `?${queryString}` : ''}`;
-    return apiCall(endpoint);
-  };
+  // Teacher functionality removed - now admin-only management
 
   const getAdmissions = (additionalParams = {}) => {
     const params = new URLSearchParams(additionalParams);
@@ -185,7 +180,6 @@ export const useAdminAPI = () => {
     
     // Specific methods
     getStudents,
-    getTeachers,
     getAdmissions,
     getAnnouncements,
     getExamTypes,

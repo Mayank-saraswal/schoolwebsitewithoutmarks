@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdmin } from '../context/AdminContext';
 import AdmissionViewer from '../components/AdmissionViewer';
-import TeacherRequestViewer from '../components/TeacherRequestViewer';
-import StudentList from '../components/StudentList';
+// TeacherRequestViewer removed - teacher functionality moved to admin-only
+import AdminStudentManagement from '../components/AdminStudentManagement';
 import PaymentApprovalPanel from '../components/PaymentApprovalPanel';
 import AdminAnnouncementForm from '../components/AdminAnnouncementForm';
 import AdminAnnouncementList from '../components/AdminAnnouncementList';
@@ -11,6 +11,7 @@ import AdminDashboardStats from '../components/AdminDashboardStats';
 import AdminAuditLogPage from '../components/AdminAuditLogPage';
 import ClassFeeForm from '../components/ClassFeeForm';
 import BusFeeForm from '../components/BusFeeForm';
+import ExamConfiguration from '../components/ExamConfiguration';
 
 const AdminDashboard = () => {
   const { 
@@ -160,16 +161,7 @@ const AdminDashboard = () => {
             >
               📋 Admission Forms / प्रवेश फॉर्म
             </button>
-            <button
-              onClick={() => setActiveTab('teachers')}
-              className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                activeTab === 'teachers' 
-                  ? 'bg-blue-800 text-white' 
-                  : 'text-blue-200 hover:bg-blue-800 hover:text-white'
-              }`}
-            >
-              🎓 Teacher Management / शिक्षक प्रबंधन
-            </button>
+            {/* Teacher Management removed - functionality moved to admin-only */}
             <button
               onClick={() => setActiveTab('students')}
               className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
@@ -189,6 +181,16 @@ const AdminDashboard = () => {
               }`}
             >
               💰 Fee Management / फीस प्रबंधन
+            </button>
+            <button
+              onClick={() => setActiveTab('exams')}
+              className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                activeTab === 'exams' 
+                  ? 'bg-blue-800 text-white' 
+                  : 'text-blue-200 hover:bg-blue-800 hover:text-white'
+              }`}
+            >
+              📝 Exam Configuration / परीक्षा कॉन्फ़िगरेशन
             </button>
             <button
               onClick={() => setActiveTab('payments')}
@@ -252,12 +254,13 @@ const AdminDashboard = () => {
                     ? 'Admin Dashboard / व्यवस्थापक डैशबोर्ड'
                     : activeTab === 'admissions' 
                     ? `Admission Forms - ${selectedMedium} Medium` 
-                    : activeTab === 'teachers'
-                    ? 'Teacher Management / शिक्षक प्रबंधन'
+
                     : activeTab === 'students'
                     ? 'Student Management / छात्र प्रबंधन'
                     : activeTab === 'fees'
                     ? 'Fee Management / फीस प्रबंधन'
+                    : activeTab === 'exams'
+                    ? 'Exam Configuration / परीक्षा कॉन्फ़िगरेशन'
                     : activeTab === 'payments'
                     ? 'Payment Approval / भुगतान अनुमोदन'
                     : activeTab === 'announcements'
@@ -295,11 +298,7 @@ const AdminDashboard = () => {
                   </div>
                 )}
                 
-                {activeTab === 'teachers' && (
-                  <div className="text-sm text-gray-500">
-                    Manage teacher applications and approvals
-                  </div>
-                )}
+                {/* Teacher header removed */}
 
                 {activeTab === 'students' && (
                   <div className="flex items-center space-x-3">
@@ -342,6 +341,21 @@ const AdminDashboard = () => {
                       >
                         Bus Fees
                       </button>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'exams' && (
+                  <div className="flex items-center space-x-3">
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      selectedMedium === 'Hindi' 
+                        ? 'bg-orange-100 text-orange-800' 
+                        : 'bg-blue-100 text-blue-800'
+                    }`}>
+                      {selectedMedium} Medium • {selectedYear}
+                    </span>
+                    <div className="text-sm text-gray-500">
+                      Create and manage exam configurations with subject marks
                     </div>
                   </div>
                 )}
@@ -398,12 +412,12 @@ const AdminDashboard = () => {
               selectedMedium={selectedMedium} 
               selectedYear={selectedYear.toString()}
             />
-          ) : activeTab === 'teachers' ? (
-            <TeacherRequestViewer />
           ) : activeTab === 'students' ? (
-            <StudentList />
+            <AdminStudentManagement />
           ) : activeTab === 'fees' ? (
             feeManagementTab === 'class' ? <ClassFeeForm /> : <BusFeeForm />
+          ) : activeTab === 'exams' ? (
+            <ExamConfiguration />
           ) : activeTab === 'payments' ? (
             <PaymentApprovalPanel />
           ) : activeTab === 'announcements' ? (

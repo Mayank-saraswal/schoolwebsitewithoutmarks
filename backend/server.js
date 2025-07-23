@@ -8,7 +8,6 @@ import helmet from 'helmet';
 
 // Import routes
 import adminRoutes from './routes/adminRoutes.js';
-import teacherRoutes from './routes/teacherRoutes.js';
 import parentRoutes from './routes/parentRoutes.js';
 import studentRoutes from './routes/studentRoutes.js';
 import configRoutes from './routes/configRoutes.js';
@@ -60,7 +59,6 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/excellenc
 
 // Routes
 app.use('/api/admin', adminRoutes);
-app.use('/api/teachers', teacherRoutes);
 app.use('/api/parents', parentRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/config', configRoutes);

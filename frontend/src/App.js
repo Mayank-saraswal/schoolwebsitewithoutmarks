@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import { AuthProvider } from './context/AuthContext';
 import { AdminProvider } from './context/AdminContext';
 import { ParentProvider } from './context/ParentContext';
-import { TeacherProvider } from './context/TeacherContext';
+
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './App.css';
@@ -13,15 +13,13 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import AdminProtectedRoute from './components/AdminProtectedRoute';
 import AdminRouter from './components/AdminRouter';
-import TeacherProtectedRoute from './components/TeacherProtectedRoute';
+
 import ParentProtectedRoute from './components/ParentProtectedRoute';
 
 const AdminLogin = React.lazy(() => import('./pages/AdminLogin'));
 const AdminDashboard = React.lazy(() => import('./pages/AdminDashboard'));
 const AdminMediumSelect = React.lazy(() => import('./pages/AdminMediumSelect'));
-const TeacherLogin = React.lazy(() => import('./pages/TeacherLogin'));
-const TeacherRegister = React.lazy(() => import('./pages/TeacherRegister'));
-const TeacherDashboard = React.lazy(() => import('./pages/TeacherDashboard'));
+
 const ParentLogin = React.lazy(() => import('./pages/ParentLogin'));
 const ParentDashboard = React.lazy(() => import('./pages/ParentDashboard'));
 const FeePaymentPage = React.lazy(() => import('./pages/FeePaymentPage'));
@@ -53,7 +51,6 @@ const AppContent = () => {
   const dashboardRoutes = [
     '/admin/dashboard',
     '/admin/medium-select',
-    '/teacher/dashboard',
     '/parent/dashboard',
     '/parent/payment'
   ];
@@ -84,13 +81,7 @@ const AppContent = () => {
               </AdminProtectedRoute>
             } />
             
-            <Route path="/teacher/login" element={<TeacherLogin />} />
-            <Route path="/teacher/register" element={<TeacherRegister />} />
-            <Route path="/teacher/dashboard" element={
-              <TeacherProtectedRoute>
-                <TeacherDashboard />
-              </TeacherProtectedRoute>
-            } />
+
             
             <Route path="/parent/login" element={<ParentLogin />} />
             <Route path="/parent/dashboard" element={
@@ -138,9 +129,7 @@ function App() {
       <AuthProvider>
         <AdminProvider>
           <ParentProvider>
-            <TeacherProvider>
-              <AppContent />
-            </TeacherProvider>
+            <AppContent />
           </ParentProvider>
         </AdminProvider>
       </AuthProvider>

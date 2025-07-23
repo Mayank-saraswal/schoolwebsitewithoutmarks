@@ -26,15 +26,7 @@ const studentSchema = new mongoose.Schema({
     type: String,
     required: [true, 'SR Number is required'],
     unique: true,
-    trim: true,
-    uppercase: true,
-    validate: {
-      validator: function(srNumber) {
-        // SR Number format: SR2024001, SR2024002, etc.
-        return /^SR\d{7}$/.test(srNumber);
-      },
-      message: 'SR Number must be in format SR2024001'
-    }
+    trim: true
   },
   address: {
     type: String,
@@ -84,8 +76,8 @@ const studentSchema = new mongoose.Schema({
     trim: true,
     validate: {
       validator: function(janAadhar) {
-        // Jan Aadhar number: typically 10-15 characters (alphanumeric)
-        return /^[A-Z0-9]{10,15}$/.test(janAadhar);
+        // Jan Aadhar number: typically 10-15 characters (alphanumeric, case insensitive)
+        return /^[A-Za-z0-9]{10,15}$/.test(janAadhar);
       },
       message: 'Please enter a valid Jan Aadhar number (10-15 alphanumeric characters)'
     }
@@ -174,27 +166,16 @@ const studentSchema = new mongoose.Schema({
   },
   totalFee: {
     type: Number,
-    default: function() {
-      return (this.classFee ? this.classFee.total : 0) + (this.busFee ? this.busFee.total : 0);
-    }
+    default: 0
   },
   totalFeePaid: {
     type: Number,
-    default: function() {
-      return (this.classFee ? this.classFee.paid : 0) + (this.busFee ? this.busFee.paid : 0);
-    }
+    default: 0
   },
   feeStatus: {
     type: String,
     enum: ['Paid', 'Partial', 'Unpaid'],
-    default: function() {
-      const totalDue = (this.classFee ? this.classFee.total : 0) + (this.busFee ? this.busFee.total : 0);
-      const totalPaid = (this.classFee ? this.classFee.paid : 0) + (this.busFee ? this.busFee.paid : 0);
-      
-      if (totalPaid >= totalDue) return 'Paid';
-      if (totalPaid > 0) return 'Partial';
-      return 'Unpaid';
-    }
+    default: 'Unpaid'
   },
   rollNumber: {
     type: Number,
@@ -222,13 +203,9 @@ const studentSchema = new mongoose.Schema({
     }
   },
   createdBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Teacher',
-    required: [true, 'Created by teacher is required']
-  },
-  createdByName: {
     type: String,
-    required: [true, 'Teacher name is required']
+    required: [true, 'Created by admin is required'],
+    default: 'Admin'
   },
   notes: {
     type: String,
@@ -259,21 +236,25 @@ studentSchema.index({ postalCode: 1 });
 
 // Pre-save middleware to calculate fees and status
 studentSchema.pre('save', function(next) {
-  // Calculate pending amounts
-  if (this.classFee) {
-    this.classFee.pending = Math.max(0, this.classFee.total - this.classFee.paid);
+  // Ensure classFee and busFee objects exist
+  if (!this.classFee) {
+    this.classFee = { total: 0, paid: 0, pending: 0 };
   }
   
-  if (this.busFee) {
-    this.busFee.pending = Math.max(0, this.busFee.total - this.busFee.paid);
+  if (!this.busFee) {
+    this.busFee = { total: 0, paid: 0, pending: 0 };
   }
+  
+  // Calculate pending amounts
+  this.classFee.pending = Math.max(0, (this.classFee.total || 0) - (this.classFee.paid || 0));
+  this.busFee.pending = Math.max(0, (this.busFee.total || 0) - (this.busFee.paid || 0));
   
   // Calculate total fees
-  this.totalFee = (this.classFee ? this.classFee.total : 0) + (this.busFee ? this.busFee.total : 0);
-  this.totalFeePaid = (this.classFee ? this.classFee.paid : 0) + (this.busFee ? this.busFee.paid : 0);
+  this.totalFee = (this.classFee.total || 0) + (this.busFee.total || 0);
+  this.totalFeePaid = (this.classFee.paid || 0) + (this.busFee.paid || 0);
   
   // Update fee status
-  if (this.totalFeePaid >= this.totalFee) {
+  if (this.totalFeePaid >= this.totalFee && this.totalFee > 0) {
     this.feeStatus = 'Paid';
   } else if (this.totalFeePaid > 0) {
     this.feeStatus = 'Partial';
@@ -355,7 +336,7 @@ studentSchema.methods.getProfileData = function() {
     isActive: this.isActive,
     academicYear: this.academicYear,
     admissionDate: this.admissionDate,
-    createdByName: this.createdByName,
+    createdBy: this.createdBy,
     notes: this.notes
   };
 };
