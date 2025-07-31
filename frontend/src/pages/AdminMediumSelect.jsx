@@ -146,17 +146,17 @@ const AdminMediumSelect = () => {
                 हिन्दी माध्यम
               </p>
               <p className="text-gray-600 text-sm leading-relaxed">
-                हिन्दी माध्यम के छात्रों, शिक्षकों और पाठ्यक्रम का प्रबंधन करें
+                हिन्दी माध्यम के छात्रों और पाठ्यक्रम का प्रबंधन करें
               </p>
               <p className="text-gray-500 text-xs mt-2">
-                Manage Hindi medium students, teachers, and curriculum
+                Manage Hindi medium students and curriculum
               </p>
               
               {/* Features */}
               <div className="mt-4 space-y-1 text-xs text-gray-500">
                 <div className="flex items-center justify-center">
                   <span className="w-2 h-2 bg-orange-400 rounded-full mr-2"></span>
-                  Hindi Medium Students & Teachers
+                  Hindi Medium Students
                 </div>
                 <div className="flex items-center justify-center">
                   <span className="w-2 h-2 bg-orange-400 rounded-full mr-2"></span>
@@ -200,17 +200,17 @@ const AdminMediumSelect = () => {
                 अंग्रेजी माध्यम
               </p>
               <p className="text-gray-600 text-sm leading-relaxed">
-                Manage English medium students, teachers, and curriculum
+                Manage English medium students and curriculum
               </p>
               <p className="text-gray-500 text-xs mt-2">
-                अंग्रेजी माध्यम के छात्रों, शिक्षकों और पाठ्यक्रम का प्रबंधन करें
+                अंग्रेजी माध्यम के छात्रों और पाठ्यक्रम का प्रबंधन करें
               </p>
               
               {/* Features */}
               <div className="mt-4 space-y-1 text-xs text-gray-500">
                 <div className="flex items-center justify-center">
                   <span className="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
-                  English Medium Students & Teachers
+                  English Medium Students
                 </div>
                 <div className="flex items-center justify-center">
                   <span className="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>

@@ -8,7 +8,7 @@ import {
   deleteAnnouncement,
   getAnnouncementStats
 } from '../controllers/announcementController.js';
-import { verifyTeacherToken, verifyAdminToken } from '../middleware/authMiddleware.js';
+import { verifyAdminToken } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 

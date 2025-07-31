@@ -67,7 +67,7 @@ const paymentRequestSchema = new mongoose.Schema({
   },
   processedBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Teacher', // Admin who approved/rejected
+    ref: 'Admin', // Admin who approved/rejected
     default: null
   },
   processedByName: {

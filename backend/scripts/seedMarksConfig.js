@@ -286,7 +286,7 @@ const runSeeder = async () => {
     
     console.log('\n🏁 Seeding process completed successfully!');
     console.log('\nNext steps:');
-    console.log('1. Teachers can now upload marks with proper max marks validation');
+    console.log('1. Admin can now manage marks with proper max marks validation');
     console.log('2. Max marks will be auto-fetched based on class and exam type');
     console.log('3. Admin can modify these configurations as needed');
     

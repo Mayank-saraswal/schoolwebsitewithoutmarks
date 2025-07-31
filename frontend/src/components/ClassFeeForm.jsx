@@ -19,7 +19,6 @@ const ClassFeeForm = () => {
     feeStructure: {
       admissionFee: 0,
       tuitionFee: 0,
-      examFee: 0,
       bookFee: 0,
       uniformFee: 0,
       activityFee: 0,
@@ -49,7 +48,6 @@ const ClassFeeForm = () => {
   const feeTypes = [
     { key: 'admissionFee', label: 'Admission Fee / प्रवेश शुल्क' },
     { key: 'tuitionFee', label: 'Tuition Fee / शिक्षण शुल्क', required: true },
-    { key: 'examFee', label: 'Exam Fee / परीक्षा शुल्क' },
     { key: 'bookFee', label: 'Book Fee / पुस्तक शुल्क' },
     { key: 'uniformFee', label: 'Uniform Fee / वर्दी शुल्क' },
     { key: 'activityFee', label: 'Activity Fee / गतिविधि शुल्क' },
@@ -131,7 +129,6 @@ const ClassFeeForm = () => {
       feeStructure: {
         admissionFee: 0,
         tuitionFee: 0,
-        examFee: 0,
         bookFee: 0,
         uniformFee: 0,
         activityFee: 0,

@@ -96,11 +96,26 @@ const FeeStatusPanel = ({ studentId }) => {
             <span className="text-sm font-medium">{feeData.classFee.status}</span>
           </div>
         </div>
+
+        {/* Show discount information if applicable */}
+        {feeData.classFee.discount > 0 && (
+          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-green-800 font-medium">🎉 छूट मिली / Discount Applied</span>
+              <span className="text-green-600 font-bold">{formatCurrency(feeData.classFee.discount)}</span>
+            </div>
+            <p className="text-xs text-green-600 mt-1">
+              मूल शुल्क: {formatCurrency(feeData.classFee.originalTotal)} → अंतिम शुल्क: {formatCurrency(feeData.classFee.total)}
+            </p>
+          </div>
+        )}
         
         <div className="grid grid-cols-3 gap-4 mb-4">
           <div className="text-center p-4 bg-gray-50 rounded-lg">
             <p className="text-xl font-bold text-gray-900">{formatCurrency(feeData.classFee.total)}</p>
-            <p className="text-sm text-gray-600">कुल / Total</p>
+            <p className="text-sm text-gray-600">
+              {feeData.classFee.discount > 0 ? 'अंतिम / Final' : 'कुल / Total'}
+            </p>
           </div>
           <div className="text-center p-4 bg-green-50 rounded-lg">
             <p className="text-xl font-bold text-green-600">{formatCurrency(feeData.classFee.paid)}</p>

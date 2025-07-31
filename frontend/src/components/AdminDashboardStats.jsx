@@ -221,49 +221,7 @@ const AdminDashboardStats = () => {
         </div>
       </div>
 
-      {/* Staff Statistics */}
-      <div>
-        <h4 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-          🎓 Staff Overview / स्टाफ अवलोकन
-        </h4>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <StatCard
-            title="Total Teachers"
-            subtitle="कुल शिक्षक"
-            value={stats.teachers.total}
-            icon="👨‍🏫"
-            color="blue"
-          />
-          <StatCard
-            title="Approved"
-            subtitle="अनुमोदित"
-            value={stats.teachers.approved}
-            icon="✅"
-            color="green"
-          />
-          <StatCard
-            title="Pending"
-            subtitle="लंबित"
-            value={stats.teachers.pending}
-            icon="⏳"
-            color="yellow"
-          />
-          <StatCard
-            title="Rejected"
-            subtitle="अस्वीकृत"
-            value={stats.teachers.rejected}
-            icon="❌"
-            color="red"
-          />
-          <StatCard
-            title="Inactive"
-            subtitle="निष्क्रिय"
-            value={stats.teachers.inactive}
-            icon="😴"
-            color="gray"
-          />
-        </div>
-      </div>
+
 
       {/* Academic Statistics */}
       <div>

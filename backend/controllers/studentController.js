@@ -2,11 +2,10 @@ import mongoose from 'mongoose';
 import Student from '../models/Student.js';
 import ClassFee from '../models/ClassFee.js';
 import BusRoute from '../models/BusRoute.js';
-import Teacher from '../models/Teacher.js';
 
 // @desc    Create new student
 // @route   POST /api/students/create
-// @access  Private (Teacher only)
+// @access  Private (Admin only)
 export const createStudent = async (req, res) => {
   try {
     console.log('🎓 Creating student with data:', JSON.stringify(req.body, null, 2));
@@ -26,68 +25,31 @@ export const createStudent = async (req, res) => {
       medium,
       hasBus,
       busRoute,
-      notes
+      notes,
+      classFeeDiscount
     } = req.body;
 
-    // Get teacher info from JWT
-    const teacherId = req.teacher.id || req.teacher._id;
+    // Get admin info from JWT
+    const adminId = req.admin.adminId;
     
-    console.log('🔍 Teacher ID from token:', teacherId);
-    console.log('🔍 Teacher object:', req.teacher);
+    console.log('🔍 Admin ID from token:', adminId);
+    console.log('🔍 Admin object:', req.admin);
     
-    if (!teacherId) {
-      console.error('❌ Teacher ID not found in token');
+    if (!adminId) {
+      console.error('❌ Admin ID not found in token');
       return res.status(400).json({
         success: false,
-        message: 'Authentication failed: Teacher ID not found in token / प्रमाणीकरण विफल: टोकन में शिक्षक आईडी नहीं मिली'
+        message: 'Authentication failed: Admin ID not found in token / प्रमाणीकरण विफल: टोकन में एडमिन आईडी नहीं मिली'
       });
     }
 
-    // For debug teacher (mock), skip database lookup
-    let teacher;
-    if (teacherId === '000000000000000000000001') {
-      console.log('🐛 Using debug teacher');
-      teacher = {
-        _id: teacherId,
-        fullName: 'Debug Teacher',
-        medium: 'Hindi',
-        classTeacherOf: 'Class 12 Science',
-        isActive: true,
-        isApproved: true
-      };
-    } else {
-      // Validate ObjectId format for real teachers
-      if (!teacherId.match(/^[0-9a-fA-F]{24}$/)) {
-        console.error('❌ Invalid teacher ID format:', teacherId);
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid teacher ID format / अमान्य शिक्षक आईडी प्रारूप'
-        });
-      }
-
-      teacher = await Teacher.findById(teacherId);
-      console.log('🔍 Teacher found in database:', !!teacher);
-
-      if (!teacher) {
-        console.error('❌ Teacher record not found for ID:', teacherId);
-        return res.status(404).json({
-          success: false,
-          message: 'Teacher record not found. Please contact administrator / शिक्षक रिकॉर्ड नहीं मिला। कृपया प्रशासक से संपर्क करें'
-        });
-      }
-
-      // Verify teacher is active and approved
-      if (!teacher.isActive || !teacher.isApproved) {
-        console.error('❌ Teacher not active or approved:', {
-          isActive: teacher.isActive,
-          isApproved: teacher.isApproved
-        });
-        return res.status(403).json({
-          success: false,
-          message: 'Teacher account is not active or not approved / शिक्षक खाता सक्रिय नहीं है या अनुमोदित नहीं है'
-        });
-      }
-    }
+    // Admin authentication verified
+    const admin = {
+      _id: adminId,
+      fullName: req.admin.name || 'Admin',
+      isActive: true,
+      isApproved: true
+    };
 
     // Validate required fields
     const requiredFieldsError = {};
@@ -115,8 +77,8 @@ export const createStudent = async (req, res) => {
 
     console.log('✅ All required fields provided');
 
-    // Teachers can now add students for any class
-    // (Removed class restriction to allow flexibility)
+    // Admin can add students for any class
+    // (No class restriction for admin flexibility)
 
     // Check if SR Number already exists
     const existingStudent = await Student.findOne({ srNumber });
@@ -211,8 +173,8 @@ export const createStudent = async (req, res) => {
       busRoute: hasBus ? selectedBusRoute.routeName : null,
       classFee: {
         total: classFee || 0,
-        paid: 0,
-        pending: classFee || 0
+        discount: classFeeDiscount || 0,
+        paid: 0
       },
       busFee: {
         total: busRouteFee || 0,
@@ -220,8 +182,8 @@ export const createStudent = async (req, res) => {
         pending: busRouteFee || 0
       },
       academicYear: new Date().getFullYear().toString(), // Ensure academic year is set as string
-      createdBy: teacherId === '000000000000000000000001' ? new mongoose.Types.ObjectId('000000000000000000000001') : new mongoose.Types.ObjectId(teacherId),
-      createdByName: teacher.fullName,
+      createdBy: adminId,
+      createdByName: admin.fullName,
       notes: notes || '',
       subjects: Array.isArray(req.body.subjects) ? req.body.subjects : []
     };
@@ -335,8 +297,8 @@ export const testCreateStudent = async (req, res) => {
         paid: 0,
         pending: 0
       },
-      createdBy: new mongoose.Types.ObjectId('000000000000000000000001'),
-      createdByName: 'Test Teacher',
+      createdBy: 'test-admin@saraswatischool',
+      createdByName: 'Test Admin',
       notes: 'Test student for debugging'
     };
 
@@ -379,12 +341,12 @@ export const testCreateStudent = async (req, res) => {
   }
 };
 
-// @desc    Get students created by teacher
+// @desc    Get students created by admin
 // @route   GET /api/students/my-students
-// @access  Private (Teacher only)
+// @access  Private (Admin only)
 export const getMyStudents = async (req, res) => {
   try {
-    const teacherId = req.teacher.id;
+    const adminId = req.admin.adminId;
     const {
       page = 1,
       limit = 20,
@@ -396,39 +358,21 @@ export const getMyStudents = async (req, res) => {
     } = req.query;
 
     console.log('🎓 getMyStudents called with:', {
-      teacherId,
-      teacherMedium: req.teacher.medium,
+      adminId,
       filters: { page, limit, filterClass, feeStatus, hasBus, search, academicYear }
     });
 
-    // Build query - MUST include teacher's medium and current academic year
-    const query = { 
-      createdBy: teacherId
-    };
+    // Build query - admin can access all students
+    const query = {};
 
-    // Handle medium filtering for both teachers and admins
-    if (req.teacher.type === 'admin') {
-      // For admin users, allow access to all mediums or filter by specific medium
-      const { medium: queryMedium } = req.query;
-      if (queryMedium && ['Hindi', 'English'].includes(queryMedium)) {
-        query.medium = queryMedium;
-        console.log('👨‍💼 Admin filtering students by medium:', queryMedium);
-      } else {
-        // Admin can access all mediums - no medium filter applied
-        console.log('👨‍💼 Admin accessing students from all mediums');
-      }
-    } else if (req.teacher.medium) {
-      // For regular teachers, use their assigned medium
-      query.medium = req.teacher.medium;
-      console.log('🎓 Filtering students by teacher medium:', req.teacher.medium);
+    // Admin can access all mediums or filter by specific medium
+    const { medium: queryMedium } = req.query;
+    if (queryMedium && ['Hindi', 'English'].includes(queryMedium)) {
+      query.medium = queryMedium;
+      console.log('👨‍💼 Admin filtering students by medium:', queryMedium);
     } else {
-      console.warn('⚠️ Teacher medium not found in JWT token');
-      return res.status(400).json({
-        success: false,
-        message: 'शिक्षक प्रोफाइल में माध्यम नहीं मिला / Teacher medium not found in profile',
-        hint: 'कृपया व्यवस्थापक से संपर्क करें / Please contact administrator',
-        code: 'MEDIUM_NOT_FOUND'
-      });
+      // Admin can access all mediums - no medium filter applied
+      console.log('👨‍💼 Admin accessing students from all mediums');
     }
 
     // Add academic year filter - use current year if not specified
@@ -477,9 +421,8 @@ export const getMyStudents = async (req, res) => {
 
     console.log(`📊 Found ${students.length} students out of ${total} total matching query`);
 
-    // Get statistics for teacher's students with same filters
+    // Get statistics for admin's students with same filters
     const statsQuery = {
-      createdBy: teacherId,
       academicYear: yearToFilter
     };
     
@@ -490,14 +433,9 @@ export const getMyStudents = async (req, res) => {
     
     const stats = await Student.getStats(statsQuery);
 
-    // Determine response message based on user type and filters
-    let responseMessage;
-    if (req.teacher.type === 'admin') {
-      const mediumText = query.medium ? `${query.medium} medium` : 'all mediums';
-      responseMessage = `Found ${students.length} students for ${mediumText}`;
-    } else {
-      responseMessage = `Found ${students.length} students for ${req.teacher.medium} medium`;
-    }
+    // Determine response message based on filters
+    const mediumText = query.medium ? `${query.medium} medium` : 'all mediums';
+    const responseMessage = `Found ${students.length} students for ${mediumText}`;
 
     res.status(200).json({
       success: true,
@@ -515,8 +453,8 @@ export const getMyStudents = async (req, res) => {
       filters: {
         medium: query.medium || 'all',
         academicYear: yearToFilter,
-        teacherId: teacherId,
-        userType: req.teacher.type || 'teacher'
+        adminId: adminId,
+        userType: 'admin'
       },
       pagination: {
         currentPage: parseInt(page),
@@ -540,16 +478,13 @@ export const getMyStudents = async (req, res) => {
 
 // @desc    Get student by ID
 // @route   GET /api/students/:id
-// @access  Private (Teacher only)
+// @access  Private (Admin only)
 export const getStudentById = async (req, res) => {
   try {
     const { id } = req.params;
-    const teacherId = req.teacher.id;
+    const adminId = req.admin.adminId;
 
-    const student = await Student.findOne({
-      _id: id,
-      createdBy: teacherId
-    });
+    const student = await Student.findById(id);
 
     if (!student) {
       return res.status(404).json({
@@ -588,11 +523,11 @@ export const getStudentById = async (req, res) => {
 
 // @desc    Update student
 // @route   PUT /api/students/:id
-// @access  Private (Teacher only)
+// @access  Private (Admin only)
 export const updateStudent = async (req, res) => {
   try {
     const { id } = req.params;
-    const teacherId = req.teacher.id || req.teacher._id;
+    const adminId = req.admin.adminId;
     const {
       studentName,
       fatherName,
@@ -608,19 +543,8 @@ export const updateStudent = async (req, res) => {
       notes
     } = req.body;
 
-    // Validate ObjectId format
-    if (!teacherId.match(/^[0-9a-fA-F]{24}$/)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid teacher ID format / अमान्य शिक्षक आईडी प्रारूप'
-      });
-    }
-
-    // Find student
-    const student = await Student.findOne({
-      _id: id,
-      createdBy: teacherId
-    });
+    // Find student (admin can update any student)
+    const student = await Student.findById(id);
 
     if (!student) {
       return res.status(404).json({
@@ -754,7 +678,7 @@ export const updateStudent = async (req, res) => {
 
 // @desc    Get next available SR Number
 // @route   GET /api/students/next-sr-number
-// @access  Private (Teacher only)
+// @access  Private (Admin only)
 export const getNextSRNumber = async (req, res) => {
   try {
     const nextSRNumber = await Student.generateSRNumber();
@@ -922,17 +846,14 @@ export const getAdminStudents = async (req, res) => {
 
 // @desc    Delete student
 // @route   DELETE /api/students/:id
-// @access  Private (Teacher only - can only delete own students)
+// @access  Private (Admin only)
 export const deleteStudent = async (req, res) => {
   try {
     const { id } = req.params;
-    const teacherId = req.teacher.id;
+    const adminId = req.admin.adminId;
 
-    // Find student and verify ownership
-    const student = await Student.findOne({
-      _id: id,
-      createdBy: teacherId
-    });
+    // Find student (admin can delete any student)
+    const student = await Student.findById(id);
 
     if (!student) {
       return res.status(404).json({
@@ -955,7 +876,7 @@ export const deleteStudent = async (req, res) => {
     await Student.findByIdAndDelete(id);
 
     // Log the deletion (if audit logging is implemented)
-    console.log(`Student deleted by teacher ${req.teacher.fullName}:`, studentInfo);
+    console.log(`Student deleted by admin ${req.admin.name}:`, studentInfo);
 
     res.status(200).json({
       success: true,

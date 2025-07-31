@@ -26,11 +26,9 @@ const AdminAuditLogPage = () => {
   const categoryOptions = [
     { value: 'all', label: 'All Categories / सभी श्रेणियां' },
     { value: 'Student', label: 'Student / छात्र' },
-    { value: 'Teacher', label: 'Teacher / शिक्षक' },
     { value: 'Admission', label: 'Admission / प्रवेश' },
     { value: 'Fee', label: 'Fee / शुल्क' },
     { value: 'Announcement', label: 'Announcement / घोषणा' },
-    { value: 'ExamType', label: 'Exam Type / परीक्षा प्रकार' },
     { value: 'System', label: 'System / सिस्टम' }
   ];
 
@@ -123,11 +121,9 @@ const AdminAuditLogPage = () => {
   const getCategoryIcon = (category) => {
     const icons = {
       Student: '👨‍🎓',
-      Teacher: '👨‍🏫',
       Admission: '📝',
       Fee: '💰',
       Announcement: '📢',
-      ExamType: '📝',
       System: '⚙️'
     };
     return icons[category] || '📄';

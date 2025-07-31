@@ -145,9 +145,14 @@ export const useAdminAPI = () => {
 
   // Specific API methods
   const getStudents = (additionalParams = {}) => {
-    const params = new URLSearchParams(additionalParams);
+    // Add medium and year to the parameters automatically
+    const params = new URLSearchParams({
+      medium: selectedMedium,
+      year: selectedYear,
+      ...additionalParams
+    });
     const queryString = params.toString();
-    const endpoint = `/api/admin/students${queryString ? `?${queryString}` : ''}`;
+    const endpoint = `/api/admin/students-list${queryString ? `?${queryString}` : ''}`;
     return apiCall(endpoint);
   };
 
@@ -167,12 +172,7 @@ export const useAdminAPI = () => {
     return apiCall(endpoint);
   };
 
-  const getExamTypes = (additionalParams = {}) => {
-    const params = new URLSearchParams(additionalParams);
-    const queryString = params.toString();
-    const endpoint = `/api/admin/exam-types${queryString ? `?${queryString}` : ''}`;
-    return apiCall(endpoint);
-  };
+
 
   return {
     // Generic API call
@@ -182,7 +182,6 @@ export const useAdminAPI = () => {
     getStudents,
     getAdmissions,
     getAnnouncements,
-    getExamTypes,
     
     // Filter info
     selectedMedium,

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdmin } from '../context/AdminContext';
+import { useTheme } from '../context/ThemeContext';
 import AdmissionViewer from '../components/AdmissionViewer';
-// TeacherRequestViewer removed - teacher functionality moved to admin-only
+
 import AdminStudentManagement from '../components/AdminStudentManagement';
 import PaymentApprovalPanel from '../components/PaymentApprovalPanel';
 import AdminAnnouncementForm from '../components/AdminAnnouncementForm';
@@ -11,7 +12,8 @@ import AdminDashboardStats from '../components/AdminDashboardStats';
 import AdminAuditLogPage from '../components/AdminAuditLogPage';
 import ClassFeeForm from '../components/ClassFeeForm';
 import BusFeeForm from '../components/BusFeeForm';
-import ExamConfiguration from '../components/ExamConfiguration';
+import AdminFeeManagement from '../components/AdminFeeManagement';
+
 
 const AdminDashboard = () => {
   const { 
@@ -26,13 +28,14 @@ const AdminDashboard = () => {
     isReady,
     hasSelectedMedium 
   } = useAdmin();
+  const { isDarkMode, toggleTheme } = useTheme();
   const navigate = useNavigate();
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showAnnouncementForm, setShowAnnouncementForm] = useState(false);
   const [refreshAnnouncements, setRefreshAnnouncements] = useState(0);
-  const [feeManagementTab, setFeeManagementTab] = useState('class'); // 'class' or 'bus'
+  const [feeManagementTab, setFeeManagementTab] = useState('students'); // 'class', 'bus', or 'students'
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -67,13 +70,22 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className={`min-h-screen flex ${isDarkMode ? 'dark bg-gray-900' : 'bg-gray-50'}`}>
+      {/* Mobile Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <div className={`bg-blue-900 text-white w-64 fixed inset-y-0 left-0 transform ${
+      <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-blue-900'} text-white w-64 fixed inset-y-0 left-0 transform ${
         isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      } lg:translate-x-0 transition-transform duration-200 ease-in-out lg:static lg:inset-0 z-30`}>
+      } lg:translate-x-0 transition-transform duration-200 ease-in-out lg:static lg:inset-0 z-30 flex flex-col`}>
         
-        <div className="flex items-center justify-between h-16 px-6 bg-blue-800">
+        {/* Header */}
+        <div className={`flex items-center justify-between h-16 px-6 ${isDarkMode ? 'bg-gray-700' : 'bg-blue-800'}`}>
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-gradient-to-br from-orange-100 to-orange-50 rounded-lg flex items-center justify-center overflow-hidden">
               <img 
@@ -84,6 +96,12 @@ const AdminDashboard = () => {
             </div>
             <h2 className="font-bold text-lg">Saraswati School</h2>
           </div>
+          <button
+            onClick={() => setIsSidebarOpen(false)}
+            className="lg:hidden text-white hover:bg-white hover:bg-opacity-20 p-1 rounded"
+          >
+            ✕
+          </button>
         </div>
 
         <div className="px-6 py-4 border-b border-blue-800">
@@ -101,11 +119,11 @@ const AdminDashboard = () => {
         </div>
 
         {/* Current Settings */}
-        <div className="px-6 py-4 border-b border-blue-800">
+        <div className={`px-6 py-4 border-b ${isDarkMode ? 'border-gray-600' : 'border-blue-800'}`}>
           <div className="space-y-3">
             {/* Current Medium */}
             <div className="flex items-center justify-between">
-              <span className="text-sm text-blue-200">Current Medium:</span>
+              <span className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-blue-200'}`}>Current Medium:</span>
               <span className={`px-2 py-1 rounded text-xs font-medium ${
                 selectedMedium === 'Hindi' 
                   ? 'bg-orange-600 text-white' 
@@ -117,11 +135,11 @@ const AdminDashboard = () => {
             
             {/* Year Selector */}
             <div className="flex items-center justify-between">
-              <span className="text-sm text-blue-200">Academic Year:</span>
+              <span className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-blue-200'}`}>Academic Year:</span>
               <select
                 value={selectedYear}
                 onChange={(e) => handleYearChange(e.target.value)}
-                className="bg-blue-800 text-white text-xs px-2 py-1 rounded border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-blue-800 border-blue-700'} text-white text-xs px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-blue-500`}
               >
                 {availableYears.map(year => (
                   <option key={year} value={year}>{year}</option>
@@ -129,24 +147,33 @@ const AdminDashboard = () => {
               </select>
             </div>
 
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className={`w-full text-xs ${isDarkMode ? 'text-gray-300 hover:text-white hover:bg-gray-700' : 'text-blue-200 hover:text-white hover:bg-blue-800'} py-2 px-2 rounded transition-colors duration-200 flex items-center justify-center space-x-2`}
+            >
+              <span>{isDarkMode ? '☀️' : '🌙'}</span>
+              <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
+            </button>
+
             {/* Change Medium Button */}
             <button
               onClick={() => navigate('/admin/medium-select', { state: { changeMedium: true } })}
-              className="w-full text-xs text-blue-200 hover:text-white hover:bg-blue-800 py-1 px-2 rounded transition-colors duration-200"
+              className={`w-full text-xs ${isDarkMode ? 'text-gray-300 hover:text-white hover:bg-gray-700' : 'text-blue-200 hover:text-white hover:bg-blue-800'} py-1 px-2 rounded transition-colors duration-200`}
             >
               Change Medium / माध्यम बदलें
             </button>
           </div>
         </div>
 
-        <nav className="mt-6">
+        <nav className="flex-1 mt-6 overflow-y-auto">
           <div className="space-y-1 px-3">
             <button
               onClick={() => setActiveTab('dashboard')}
               className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                 activeTab === 'dashboard' 
-                  ? 'bg-blue-800 text-white' 
-                  : 'text-blue-200 hover:bg-blue-800 hover:text-white'
+                  ? (isDarkMode ? 'bg-gray-700 text-white' : 'bg-blue-800 text-white')
+                  : (isDarkMode ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-blue-200 hover:bg-blue-800 hover:text-white')
               }`}
             >
               📊 Dashboard / डैशबोर्ड
@@ -155,19 +182,19 @@ const AdminDashboard = () => {
               onClick={() => setActiveTab('admissions')}
               className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                 activeTab === 'admissions' 
-                  ? 'bg-blue-800 text-white' 
-                  : 'text-blue-200 hover:bg-blue-800 hover:text-white'
+                  ? (isDarkMode ? 'bg-gray-700 text-white' : 'bg-blue-800 text-white')
+                  : (isDarkMode ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-blue-200 hover:bg-blue-800 hover:text-white')
               }`}
             >
               📋 Admission Forms / प्रवेश फॉर्म
             </button>
-            {/* Teacher Management removed - functionality moved to admin-only */}
+
             <button
               onClick={() => setActiveTab('students')}
               className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                 activeTab === 'students' 
-                  ? 'bg-blue-800 text-white' 
-                  : 'text-blue-200 hover:bg-blue-800 hover:text-white'
+                  ? (isDarkMode ? 'bg-gray-700 text-white' : 'bg-blue-800 text-white')
+                  : (isDarkMode ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-blue-200 hover:bg-blue-800 hover:text-white')
               }`}
             >
               👥 Student Management / छात्र प्रबंधन
@@ -176,28 +203,19 @@ const AdminDashboard = () => {
               onClick={() => setActiveTab('fees')}
               className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                 activeTab === 'fees' 
-                  ? 'bg-blue-800 text-white' 
-                  : 'text-blue-200 hover:bg-blue-800 hover:text-white'
+                  ? (isDarkMode ? 'bg-gray-700 text-white' : 'bg-blue-800 text-white')
+                  : (isDarkMode ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-blue-200 hover:bg-blue-800 hover:text-white')
               }`}
             >
               💰 Fee Management / फीस प्रबंधन
             </button>
-            <button
-              onClick={() => setActiveTab('exams')}
-              className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                activeTab === 'exams' 
-                  ? 'bg-blue-800 text-white' 
-                  : 'text-blue-200 hover:bg-blue-800 hover:text-white'
-              }`}
-            >
-              📝 Exam Configuration / परीक्षा कॉन्फ़िगरेशन
-            </button>
+
             <button
               onClick={() => setActiveTab('payments')}
               className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                 activeTab === 'payments' 
-                  ? 'bg-blue-800 text-white' 
-                  : 'text-blue-200 hover:bg-blue-800 hover:text-white'
+                  ? (isDarkMode ? 'bg-gray-700 text-white' : 'bg-blue-800 text-white')
+                  : (isDarkMode ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-blue-200 hover:bg-blue-800 hover:text-white')
               }`}
             >
               💳 Payment Approval / भुगतान अनुमोदन
@@ -206,8 +224,8 @@ const AdminDashboard = () => {
               onClick={() => setActiveTab('announcements')}
               className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                 activeTab === 'announcements' 
-                  ? 'bg-blue-800 text-white' 
-                  : 'text-blue-200 hover:bg-blue-800 hover:text-white'
+                  ? (isDarkMode ? 'bg-gray-700 text-white' : 'bg-blue-800 text-white')
+                  : (isDarkMode ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-blue-200 hover:bg-blue-800 hover:text-white')
               }`}
             >
               📢 Announcements / घोषणाएं
@@ -216,8 +234,8 @@ const AdminDashboard = () => {
               onClick={() => setActiveTab('audit')}
               className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                 activeTab === 'audit' 
-                  ? 'bg-blue-800 text-white' 
-                  : 'text-blue-200 hover:bg-blue-800 hover:text-white'
+                  ? (isDarkMode ? 'bg-gray-700 text-white' : 'bg-blue-800 text-white')
+                  : (isDarkMode ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-blue-200 hover:bg-blue-800 hover:text-white')
               }`}
             >
               🔍 Audit Logs / ऑडिट लॉग
@@ -225,10 +243,10 @@ const AdminDashboard = () => {
           </div>
         </nav>
 
-        <div className="absolute bottom-4 left-4 right-4">
+        <div className="mt-auto p-4">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center px-3 py-2 text-sm font-medium text-blue-200 hover:bg-blue-800 hover:text-white rounded-lg transition-colors"
+            className={`w-full flex items-center px-3 py-2 text-sm font-medium ${isDarkMode ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-blue-200 hover:bg-blue-800 hover:text-white'} rounded-lg transition-colors`}
           >
             🚪 Logout
           </button>
@@ -237,7 +255,7 @@ const AdminDashboard = () => {
 
       {/* Main Content */}
       <div className="flex-1 lg:ml-0">
-        <header className="bg-white shadow-sm border-b border-gray-200">
+        <header className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} shadow-sm border-b`}>
           <div className="px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
               
@@ -249,7 +267,7 @@ const AdminDashboard = () => {
               </button>
 
               <div className="flex-1 lg:flex-none">
-                <h1 className="text-xl font-semibold text-gray-900">
+                <h1 className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                   {activeTab === 'dashboard'
                     ? 'Admin Dashboard / व्यवस्थापक डैशबोर्ड'
                     : activeTab === 'admissions' 
@@ -259,8 +277,7 @@ const AdminDashboard = () => {
                     ? 'Student Management / छात्र प्रबंधन'
                     : activeTab === 'fees'
                     ? 'Fee Management / फीस प्रबंधन'
-                    : activeTab === 'exams'
-                    ? 'Exam Configuration / परीक्षा कॉन्फ़िगरेशन'
+
                     : activeTab === 'payments'
                     ? 'Payment Approval / भुगतान अनुमोदन'
                     : activeTab === 'announcements'
@@ -298,7 +315,7 @@ const AdminDashboard = () => {
                   </div>
                 )}
                 
-                {/* Teacher header removed */}
+
 
                 {activeTab === 'students' && (
                   <div className="flex items-center space-x-3">
@@ -318,9 +335,22 @@ const AdminDashboard = () => {
                 {activeTab === 'fees' && (
                   <div className="flex items-center space-x-4">
                     <div className="text-sm text-gray-500">
-                      Configure class and bus transportation fees
+                      {feeManagementTab === 'students' 
+                        ? 'Manage individual student fee records and payments'
+                        : 'Configure class and bus transportation fees'
+                      }
                     </div>
                     <div className="flex space-x-2">
+                      <button
+                        onClick={() => setFeeManagementTab('students')}
+                        className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                          feeManagementTab === 'students'
+                            ? 'bg-green-600 text-white'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                      >
+                        Student Fees
+                      </button>
                       <button
                         onClick={() => setFeeManagementTab('class')}
                         className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
@@ -335,7 +365,7 @@ const AdminDashboard = () => {
                         onClick={() => setFeeManagementTab('bus')}
                         className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
                           feeManagementTab === 'bus'
-                            ? 'bg-green-600 text-white'
+                            ? 'bg-orange-600 text-white'
                             : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                         }`}
                       >
@@ -345,20 +375,7 @@ const AdminDashboard = () => {
                   </div>
                 )}
 
-                {activeTab === 'exams' && (
-                  <div className="flex items-center space-x-3">
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      selectedMedium === 'Hindi' 
-                        ? 'bg-orange-100 text-orange-800' 
-                        : 'bg-blue-100 text-blue-800'
-                    }`}>
-                      {selectedMedium} Medium • {selectedYear}
-                    </span>
-                    <div className="text-sm text-gray-500">
-                      Create and manage exam configurations with subject marks
-                    </div>
-                  </div>
-                )}
+
 
 
                 {activeTab === 'payments' && (
@@ -404,7 +421,7 @@ const AdminDashboard = () => {
           </div>
         </header>
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8">
+        <main className={`flex-1 p-4 sm:p-6 lg:p-8 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
           {activeTab === 'dashboard' ? (
             <AdminDashboardStats />
           ) : activeTab === 'admissions' ? (
@@ -415,9 +432,9 @@ const AdminDashboard = () => {
           ) : activeTab === 'students' ? (
             <AdminStudentManagement />
           ) : activeTab === 'fees' ? (
+            feeManagementTab === 'students' ? <AdminFeeManagement /> :
             feeManagementTab === 'class' ? <ClassFeeForm /> : <BusFeeForm />
-          ) : activeTab === 'exams' ? (
-            <ExamConfiguration />
+
           ) : activeTab === 'payments' ? (
             <PaymentApprovalPanel />
           ) : activeTab === 'announcements' ? (

@@ -360,7 +360,7 @@ export const processPaymentRequest = async (req, res) => {
   try {
     const { requestId } = req.params;
     const { action, remarks } = req.body;
-    const admin = req.teacher; // Admin is authenticated as teacher
+    const admin = req.admin; // Admin is authenticated
 
     if (!['approve', 'reject'].includes(action)) {
       return res.status(400).json({

@@ -4,14 +4,14 @@ import BusRoute from '../models/BusRoute.js';
 
 // @desc    Get class fee for a specific class and medium
 // @route   GET /api/config/fees/:class
-// @access  Private (Teacher only)
+// @access  Private (Admin only)
 export const getClassFee = async (req, res) => {
   try {
     const { class: className } = req.params;
     const { medium } = req.query;
 
-    // Get teacher's medium if not provided in query
-    const teacherMedium = medium || req.teacher.medium;
+    // Use provided medium or default to Hindi
+    const selectedMedium = medium || 'Hindi';
 
     if (!className) {
       return res.status(400).json({
@@ -21,12 +21,12 @@ export const getClassFee = async (req, res) => {
     }
 
     // Get fee structure for the class and medium
-    const feeStructure = await ClassFee.getFeeStructureForClass(className, teacherMedium);
+    const feeStructure = await ClassFee.getFeeStructureForClass(className, selectedMedium);
 
     if (!feeStructure) {
       return res.status(404).json({
         success: false,
-        message: `No fee structure found for ${className} (${teacherMedium} Medium)`
+        message: `No fee structure found for ${className} (${selectedMedium} Medium)`
       });
     }
 
@@ -47,7 +47,7 @@ export const getClassFee = async (req, res) => {
 
 // @desc    Get bus fee for a specific route
 // @route   GET /api/config/bus-fee/:route
-// @access  Private (Teacher only)
+// @access  Private (Admin only)
 export const getBusFee = async (req, res) => {
   try {
     const { route: routeIdentifier } = req.params;
@@ -94,7 +94,7 @@ export const getBusFee = async (req, res) => {
 
 // @desc    Get all active bus routes
 // @route   GET /api/config/bus-routes
-// @access  Private (Teacher only)
+// @access  Private (Admin only)
 export const getBusRoutes = async (req, res) => {
   try {
     const { academicYear } = req.query;
@@ -124,22 +124,14 @@ export const getBusRoutes = async (req, res) => {
 
 // @desc    Get complete configuration for student creation
 // @route   GET /api/config/student-form/:class
-// @access  Private (Teacher only)
+// @access  Private (Admin only)
 export const getStudentFormConfig = async (req, res) => {
   try {
     const { class: className } = req.params;
     const { medium } = req.query; // Get medium from query params
     
-    // Enhanced teacher context validation
-    if (!req.teacher) {
-      return res.status(401).json({
-        success: false,
-        message: 'Teacher authentication required / शिक्षक प्रमाणीकरण आवश्यक है'
-      });
-    }
-
-    // Use medium from query params, fallback to teacher's medium, then to 'Hindi'
-    const selectedMedium = medium || req.teacher.medium || 'Hindi';
+    // Admin authentication verified
+    const selectedMedium = medium || 'Hindi';
     const academicYear = new Date().getFullYear().toString();
 
     if (!className) {
@@ -256,10 +248,9 @@ export const getStudentFormConfig = async (req, res) => {
       debug: {
         hasFeeStructure: !!feeStructure,
         busRoutesCount: busRoutes.length,
-        teacherInfo: {
-          teacherMedium: req.teacher.medium,
+        adminInfo: {
           selectedMedium: selectedMedium,
-          hasTeacherContext: !!req.teacher
+          hasAdminContext: !!req.admin
         }
       }
     };

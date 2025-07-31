@@ -8,8 +8,8 @@ class AuditLogger {
     return {
       ipAddress: req.ip || req.connection.remoteAddress || 'Unknown',
       userAgent: req.get('User-Agent') || 'Unknown',
-      adminId: req.admin?.adminId || req.teacher?.id || 'admin@saraswatischool',
-      adminName: req.admin?.name || req.teacher?.fullName || 'Administrator'
+      adminId: req.admin?.adminId || 'admin@saraswatischool',
+      adminName: req.admin?.name || 'Administrator'
     };
   }
 
@@ -71,10 +71,7 @@ class AuditLogger {
     await this.log(action, data, 'Student', req, options);
   }
 
-  // Teacher-related audit logs
-  static async logTeacherAction(action, data, req, options = {}) {
-    await this.log(action, data, 'Teacher', req, options);
-  }
+
 
   // Admission-related audit logs
   static async logAdmissionAction(action, data, req, options = {}) {

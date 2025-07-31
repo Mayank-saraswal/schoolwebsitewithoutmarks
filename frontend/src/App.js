@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import { AuthProvider } from './context/AuthContext';
 import { AdminProvider } from './context/AdminContext';
 import { ParentProvider } from './context/ParentContext';
+import { ThemeProvider } from './context/ThemeContext';
 
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -126,13 +127,15 @@ const AppContent = () => {
 function App() {
   return (
     <Router>
-      <AuthProvider>
-        <AdminProvider>
-          <ParentProvider>
-            <AppContent />
-          </ParentProvider>
-        </AdminProvider>
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <AdminProvider>
+            <ParentProvider>
+              <AppContent />
+            </ParentProvider>
+          </AdminProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </Router>
   );
 }

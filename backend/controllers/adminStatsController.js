@@ -1,5 +1,4 @@
 import Student from '../models/Student.js';
-import Teacher from '../models/Teacher.js';
 import Announcement from '../models/Announcement.js';
 import Admission from '../models/Admission.js';
 import AuditLog from '../models/AuditLog.js';
@@ -43,7 +42,6 @@ export const getAdminStats = async (req, res) => {
     // Parallel aggregations for better performance
     const [
       studentStats,
-      teacherStats,
       admissionStats,
       announcementStats,
       feeStats
@@ -102,36 +100,7 @@ export const getAdminStats = async (req, res) => {
         }
       ]),
 
-      // Teacher Statistics
-      Teacher.aggregate([
-        { $match: { medium, academicYear: yearNum } },
-        {
-          $group: {
-            _id: null,
-            totalTeachers: { $sum: 1 },
-            approvedTeachers: { 
-              $sum: { 
-                $cond: [
-                  { $and: ['$isApproved', { $not: '$isRejected' }, '$isActive'] }, 
-                  1, 
-                  0
-                ] 
-              } 
-            },
-            pendingTeachers: { 
-              $sum: { 
-                $cond: [
-                  { $and: [{ $not: '$isApproved' }, { $not: '$isRejected' }] }, 
-                  1, 
-                  0
-                ] 
-              } 
-            },
-            rejectedTeachers: { $sum: { $cond: ['$isRejected', 1, 0] } },
-            inactiveTeachers: { $sum: { $cond: [{ $not: '$isActive' }, 1, 0] } }
-          }
-        }
-      ]),
+
 
       // Admission Statistics
       Admission.aggregate([
@@ -201,13 +170,7 @@ export const getAdminStats = async (req, res) => {
       pendingBusFees: 0
     };
 
-    const teacherData = teacherStats[0] || {
-      totalTeachers: 0,
-      approvedTeachers: 0,
-      pendingTeachers: 0,
-      rejectedTeachers: 0,
-      inactiveTeachers: 0
-    };
+
 
     const admissionData = admissionStats[0] || {
       totalAdmissions: 0,
@@ -266,14 +229,7 @@ export const getAdminStats = async (req, res) => {
         collectionRate: `${collectionRate}%`
       },
 
-      // Teacher metrics
-      teachers: {
-        total: teacherData.totalTeachers,
-        approved: teacherData.approvedTeachers,
-        pending: teacherData.pendingTeachers,
-        rejected: teacherData.rejectedTeachers,
-        inactive: teacherData.inactiveTeachers
-      },
+
 
       // Admission metrics
       admissions: {

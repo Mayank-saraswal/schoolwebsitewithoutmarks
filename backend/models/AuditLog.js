@@ -51,7 +51,7 @@ const auditLogSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    enum: ['Student', 'Teacher', 'Admission', 'Fee', 'Announcement', 'ExamType', 'System'],
+    enum: ['Student', 'Admission', 'Fee', 'Announcement', 'System'],
     required: true
   },
   severity: {

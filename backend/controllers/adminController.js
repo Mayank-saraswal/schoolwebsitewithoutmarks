@@ -1,5 +1,4 @@
 import Student from '../models/Student.js';
-import ExamConfig from '../models/ExamConfig.js';
 import Subject from '../models/Subject.js';
 import ClassFee from '../models/ClassFee.js';
 import BusRoute from '../models/BusRoute.js';
@@ -7,13 +6,13 @@ import AuditLogger from '../utils/auditLogger.js';
 
 // ===== STUDENT MANAGEMENT =====
 
-// @desc    Add new student (moved from teacher controller)
+// @desc    Add new student
 // @route   POST /api/admin/add-student
 // @access  Private (Admin only)
 export const addStudent = async (req, res) => {
   try {
     const studentData = req.body;
-    
+
     // Validate required fields
     const requiredFields = ['studentName', 'fatherName', 'motherName', 'address', 'parentMobile', 'dateOfBirth', 'class', 'medium'];
     for (const field of requiredFields) {
@@ -24,7 +23,7 @@ export const addStudent = async (req, res) => {
         });
       }
     }
-    
+
     // Validate mobile number
     if (!/^[6-9]\d{9}$/.test(studentData.parentMobile)) {
       return res.status(400).json({
@@ -43,7 +42,7 @@ export const addStudent = async (req, res) => {
         });
       }
     }
-    
+
     // If bus is required, validate and update bus route
     if (studentData.hasBus && studentData.busRoute) {
       const busRoute = await BusRoute.findById(studentData.busRoute);
@@ -53,37 +52,37 @@ export const addStudent = async (req, res) => {
           message: 'Selected bus route not found'
         });
       }
-      
+
       if (busRoute.currentStudents >= busRoute.maxStudents) {
         return res.status(400).json({
           success: false,
           message: 'Bus route is full'
         });
       }
-      
+
       // Update bus route student count
       await BusRoute.findByIdAndUpdate(studentData.busRoute, {
         $inc: { currentStudents: 1 }
       });
     }
-    
+
     // Get class fee information
     let classFeeTotal = 0;
     let busFeeTotal = 0;
-    
+
     try {
       // Get class fee
       const ClassFee = (await import('../models/ClassFee.js')).default;
       const feeStructure = await ClassFee.getFeeStructureForClass(
-        studentData.class, 
-        studentData.medium, 
+        studentData.class,
+        studentData.medium,
         new Date().getFullYear().toString()
       );
-      
+
       if (feeStructure) {
         classFeeTotal = feeStructure.totalFee || 0;
       }
-      
+
       // Get bus fee if bus is required
       if (studentData.hasBus && studentData.busRoute) {
         const busRoute = await BusRoute.findById(studentData.busRoute);
@@ -104,29 +103,36 @@ export const addStudent = async (req, res) => {
       }
     }
 
-    // Create student with proper fee structure
+    // Handle discount
+    const discount = parseFloat(studentData.classFeeDiscount) || 0;
+    const discountedClassFee = Math.max(0, classFeeTotal - discount);
+
+    // Create student with proper fee structure including discount
     const student = new Student({
       ...studentData,
       busRoute: busRouteName, // Store route name instead of ID
       classFee: {
         total: classFeeTotal,
+        discount: discount,
+        discountedTotal: discountedClassFee,
         paid: 0,
-        pending: classFeeTotal
+        pending: discountedClassFee
       },
       busFee: {
         total: busFeeTotal,
         paid: 0,
         pending: busFeeTotal
       },
-      totalFee: classFeeTotal + busFeeTotal,
+      totalFee: discountedClassFee + busFeeTotal,
       totalFeePaid: 0,
       feeStatus: 'Unpaid',
       createdBy: req.admin.adminId,
+      createdByName: req.admin.name || 'Administrator',
       createdAt: new Date()
     });
-    
+
     await student.save();
-    
+
     // Log the action
     await AuditLogger.logStudentAction(
       '✅ Student Created',
@@ -140,7 +146,7 @@ export const addStudent = async (req, res) => {
       req,
       { severity: 'medium' }
     );
-    
+
     res.status(201).json({
       success: true,
       message: 'Student added successfully',
@@ -153,7 +159,7 @@ export const addStudent = async (req, res) => {
         totalFee: student.totalFee
       }
     });
-    
+
   } catch (error) {
     console.error('Error adding student:', error);
     res.status(500).json({
@@ -164,7 +170,7 @@ export const addStudent = async (req, res) => {
   }
 };
 
-// @desc    Get students list (moved from teacher controller)
+// @desc    Get students list
 // @route   GET /api/admin/students
 // @access  Private (Admin only)
 export const getStudents = async (req, res) => {
@@ -178,19 +184,23 @@ export const getStudents = async (req, res) => {
       search
     } = req.query;
 
-    // Validate required filters
-    if (!medium || !year) {
-      return res.status(400).json({
-        success: false,
-        message: 'Medium and year are required'
-      });
+    console.log(`👨‍💼 Admin getStudents called with params:`, { medium, year, className, search, page, limit });
+
+    // Build query - make filtering more flexible
+    const query = {};
+
+    // Add medium filter if provided
+    if (medium && medium !== 'all') {
+      query.medium = medium;
     }
 
-    // Build query
-    const query = {
-      medium: medium,
-      academicYear: parseInt(year)
-    };
+    // Add year filter if provided - handle both string and number formats
+    if (year && year !== 'all') {
+      query.$or = [
+        { academicYear: parseInt(year) },
+        { academicYear: year.toString() }
+      ];
+    }
 
     if (className && className !== 'all') {
       query.class = className;
@@ -198,12 +208,27 @@ export const getStudents = async (req, res) => {
 
     // Search functionality
     if (search) {
-      query.$or = [
-        { studentName: { $regex: search, $options: 'i' } },
-        { fatherName: { $regex: search, $options: 'i' } },
-        { srNumber: { $regex: search, $options: 'i' } },
-        { parentMobile: { $regex: search, $options: 'i' } }
-      ];
+      query.$and = query.$and || [];
+      query.$and.push({
+        $or: [
+          { studentName: { $regex: search, $options: 'i' } },
+          { fatherName: { $regex: search, $options: 'i' } },
+          { srNumber: { $regex: search, $options: 'i' } },
+          { parentMobile: { $regex: search, $options: 'i' } }
+        ]
+      });
+    }
+
+    console.log(`👨‍💼 MongoDB query:`, JSON.stringify(query, null, 2));
+
+    // Get total count first
+    const total = await Student.countDocuments(query);
+    console.log(`👨‍💼 Total students matching query: ${total}`);
+
+    // If no students found, let's check what students exist in the database
+    if (total === 0) {
+      const allStudents = await Student.find({}).select('medium academicYear class').limit(10);
+      console.log(`👨‍💼 Sample students in database:`, allStudents);
     }
 
     // Execute query with pagination
@@ -211,14 +236,46 @@ export const getStudents = async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(limit * 1)
       .skip((page - 1) * limit)
-      .select('studentName fatherName srNumber class medium parentMobile totalFee createdAt academicYear');
+      .select('studentName fatherName srNumber class medium parentMobile totalFee createdAt academicYear hasBus busRoute feeStatus');
 
-    const total = await Student.countDocuments(query);
+    console.log(`👨‍💼 Admin found ${students.length} students out of ${total} total for ${medium} medium, year ${year}`);
+
+    // Calculate statistics
+    const stats = await Student.aggregate([
+      { $match: query },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: 1 },
+          feePaid: { $sum: { $cond: [{ $eq: ['$feeStatus', 'Paid'] }, 1, 0] } },
+          feePartial: { $sum: { $cond: [{ $eq: ['$feeStatus', 'Partial'] }, 1, 0] } },
+          feeUnpaid: { $sum: { $cond: [{ $eq: ['$feeStatus', 'Unpaid'] }, 1, 0] } },
+          withBus: { $sum: { $cond: ['$hasBus', 1, 0] } },
+          withoutBus: { $sum: { $cond: ['$hasBus', 0, 1] } }
+        }
+      }
+    ]);
+
+    const statsData = stats[0] || {
+      total: 0,
+      feePaid: 0,
+      feePartial: 0,
+      feeUnpaid: 0,
+      withBus: 0,
+      withoutBus: 0
+    };
 
     res.status(200).json({
       success: true,
       message: 'Students retrieved successfully',
       data: students,
+      stats: statsData,
+      filters: {
+        medium: medium || 'all',
+        year: year || 'all',
+        class: className || 'all',
+        search: search || ''
+      },
       pagination: {
         currentPage: parseInt(page),
         totalPages: Math.ceil(total / limit),
@@ -241,284 +298,9 @@ export const getStudents = async (req, res) => {
 
 // ===== EXAM CONFIGURATION =====
 
-// @desc    Create exam configuration
-// @route   POST /api/admin/exam-setup
-// @access  Private (Admin only)
-export const createExamConfig = async (req, res) => {
-  try {
-    const { class: className, medium, academicYear, examName, subjects } = req.body;
 
-    // Validate required fields
-    if (!className || !medium || !academicYear || !examName || !subjects || !Array.isArray(subjects)) {
-      return res.status(400).json({
-        success: false,
-        message: 'All fields are required: class, medium, academicYear, examName, subjects'
-      });
-    }
 
-    // Validate subjects array
-    if (subjects.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'At least one subject is required'
-      });
-    }
 
-    // Validate each subject
-    for (const subject of subjects) {
-      if (!subject.subjectName || !subject.maxMarks || subject.maxMarks <= 0) {
-        return res.status(400).json({
-          success: false,
-          message: 'Each subject must have a name and valid max marks'
-        });
-      }
-    }
 
-    // Check if exam config already exists
-    const existingConfig = await ExamConfig.findOne({
-      class: className,
-      medium: medium,
-      academicYear: academicYear,
-      examName: examName
-    });
 
-    if (existingConfig) {
-      return res.status(400).json({
-        success: false,
-        message: 'Exam configuration already exists for this class, medium, year, and exam'
-      });
-    }
 
-    // Create new exam config
-    const examConfig = new ExamConfig({
-      class: className,
-      medium: medium,
-      academicYear: academicYear,
-      examName: examName,
-      subjects: subjects,
-      createdBy: req.admin.adminId
-    });
-
-    await examConfig.save();
-
-    // Log the action
-    await AuditLogger.logAction(
-      '📝 Exam Config Created',
-      {
-        class: className,
-        medium: medium,
-        examName: examName,
-        subjectCount: subjects.length,
-        totalMaxMarks: examConfig.totalMaxMarks
-      },
-      req,
-      { severity: 'medium' }
-    );
-
-    res.status(201).json({
-      success: true,
-      message: 'Exam configuration created successfully',
-      data: examConfig.getExamSummary()
-    });
-
-  } catch (error) {
-    console.error('Create exam config error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to create exam configuration',
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
-    });
-  }
-};
-
-// @desc    Get exam configurations
-// @route   GET /api/admin/exam-configs
-// @access  Private (Admin only)
-export const getExamConfigs = async (req, res) => {
-  try {
-    const { class: className, medium, academicYear } = req.query;
-
-    // Build query
-    const query = { isActive: true };
-    
-    if (className && className !== 'all') {
-      query.class = className;
-    }
-    
-    if (medium && medium !== 'all') {
-      query.medium = medium;
-    }
-    
-    if (academicYear) {
-      query.academicYear = academicYear;
-    }
-
-    const examConfigs = await ExamConfig.find(query)
-      .sort({ class: 1, medium: 1, examName: 1 })
-      .select('class medium academicYear examName subjects totalMaxMarks createdAt');
-
-    res.status(200).json({
-      success: true,
-      message: 'Exam configurations retrieved successfully',
-      data: examConfigs.map(config => config.getExamSummary())
-    });
-
-  } catch (error) {
-    console.error('Get exam configs error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to retrieve exam configurations',
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
-    });
-  }
-};
-
-// @desc    Get subjects for a class and medium
-// @route   GET /api/admin/subjects
-// @access  Private (Admin only)
-export const getSubjectsForClass = async (req, res) => {
-  try {
-    const { class: className, medium, academicYear } = req.query;
-
-    if (!className || !medium) {
-      return res.status(400).json({
-        success: false,
-        message: 'Class and medium are required'
-      });
-    }
-
-    const year = academicYear || new Date().getFullYear().toString();
-    const subjects = await Subject.getSubjectsForClass(className, medium, year);
-
-    res.status(200).json({
-      success: true,
-      message: 'Subjects retrieved successfully',
-      data: {
-        class: className,
-        medium: medium,
-        academicYear: year,
-        subjects: subjects
-      }
-    });
-
-  } catch (error) {
-    console.error('Get subjects error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to retrieve subjects',
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
-    });
-  }
-};
-
-// @desc    Update exam configuration
-// @route   PUT /api/admin/exam-setup/:id
-// @access  Private (Admin only)
-export const updateExamConfig = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { subjects } = req.body;
-
-    if (!subjects || !Array.isArray(subjects) || subjects.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'Valid subjects array is required'
-      });
-    }
-
-    // Validate each subject
-    for (const subject of subjects) {
-      if (!subject.subjectName || !subject.maxMarks || subject.maxMarks <= 0) {
-        return res.status(400).json({
-          success: false,
-          message: 'Each subject must have a name and valid max marks'
-        });
-      }
-    }
-
-    const examConfig = await ExamConfig.findById(id);
-    if (!examConfig) {
-      return res.status(404).json({
-        success: false,
-        message: 'Exam configuration not found'
-      });
-    }
-
-    examConfig.subjects = subjects;
-    await examConfig.save();
-
-    // Log the action
-    await AuditLogger.logAction(
-      '📝 Exam Config Updated',
-      {
-        class: examConfig.class,
-        medium: examConfig.medium,
-        examName: examConfig.examName,
-        subjectCount: subjects.length,
-        totalMaxMarks: examConfig.totalMaxMarks
-      },
-      req,
-      { severity: 'medium' }
-    );
-
-    res.status(200).json({
-      success: true,
-      message: 'Exam configuration updated successfully',
-      data: examConfig.getExamSummary()
-    });
-
-  } catch (error) {
-    console.error('Update exam config error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to update exam configuration',
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
-    });
-  }
-};
-
-// @desc    Delete exam configuration
-// @route   DELETE /api/admin/exam-setup/:id
-// @access  Private (Admin only)
-export const deleteExamConfig = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const examConfig = await ExamConfig.findById(id);
-    if (!examConfig) {
-      return res.status(404).json({
-        success: false,
-        message: 'Exam configuration not found'
-      });
-    }
-
-    // Soft delete by setting isActive to false
-    examConfig.isActive = false;
-    await examConfig.save();
-
-    // Log the action
-    await AuditLogger.logAction(
-      '🗑️ Exam Config Deleted',
-      {
-        class: examConfig.class,
-        medium: examConfig.medium,
-        examName: examConfig.examName
-      },
-      req,
-      { severity: 'high' }
-    );
-
-    res.status(200).json({
-      success: true,
-      message: 'Exam configuration deleted successfully'
-    });
-
-  } catch (error) {
-    console.error('Delete exam config error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to delete exam configuration',
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
-    });
-  }
-};

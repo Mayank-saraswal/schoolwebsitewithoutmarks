@@ -60,16 +60,18 @@ const StudentList = ({ refreshTrigger, onEditStudent, onStudentDeleted, mode = '
       setLoading(true);
       setError(null);
       
-      // Use admin API endpoint
+      // Use admin API endpoint with current filters
       console.log('👨‍💼 Loading students using admin context with filters:', filters);
       console.log('👨‍💼 Admin medium/year:', selectedMedium, selectedYear);
+      
+      // Call the API with current filters
       const response = await getStudents(filters);
       
       if (response.success) {
-        setStudents(response.data);
-        setStats(response.stats);
-        setPagination(response.pagination);
-        console.log(`✅ Loaded ${response.data.length} students`);
+        setStudents(response.data || []);
+        setStats(response.stats || {});
+        setPagination(response.pagination || {});
+        console.log(`✅ Loaded ${response.data?.length || 0} students`);
         console.log('📊 Response stats:', response.stats);
         console.log('🔍 Applied filters:', response.filters);
       } else {
@@ -79,6 +81,21 @@ const StudentList = ({ refreshTrigger, onEditStudent, onStudentDeleted, mode = '
     } catch (err) {
       console.error('❌ Error loading students:', err);
       setError(`Failed to load students data: ${err.message}`);
+      
+      // Try to load all students without filters as fallback
+      try {
+        console.log('🔄 Trying fallback: loading all students...');
+        const fallbackResponse = await getStudents({ medium: 'all', year: 'all' });
+        if (fallbackResponse.success) {
+          setStudents(fallbackResponse.data || []);
+          setStats(fallbackResponse.stats || {});
+          setPagination(fallbackResponse.pagination || {});
+          setError(null);
+          console.log(`✅ Fallback successful: Loaded ${fallbackResponse.data?.length || 0} students`);
+        }
+      } catch (fallbackErr) {
+        console.error('❌ Fallback also failed:', fallbackErr);
+      }
     } finally {
       setLoading(false);
     }
@@ -415,19 +432,29 @@ const StudentList = ({ refreshTrigger, onEditStudent, onStudentDeleted, mode = '
                 </h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span>Class Fee:</span>
-                    <span>₹{student.classFee.toLocaleString()}</span>
+                    <span>Original Class Fee:</span>
+                    <span>₹{(student.classFee?.total || 0).toLocaleString()}</span>
+                  </div>
+                  {student.classFee?.discount > 0 && (
+                    <div className="flex justify-between text-red-600">
+                      <span>Discount:</span>
+                      <span>-₹{(student.classFee.discount || 0).toLocaleString()}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between font-medium text-blue-700">
+                    <span>Final Class Fee:</span>
+                    <span>₹{(student.classFee?.discountedTotal || student.classFee?.total || 0).toLocaleString()}</span>
                   </div>
                   {student.hasBus && (
                     <div className="flex justify-between">
                       <span>Bus Fee:</span>
-                      <span>₹{student.busFee.toLocaleString()}</span>
+                      <span>₹{(student.busFee?.total || 0).toLocaleString()}</span>
                     </div>
                   )}
                   <div className="border-t pt-2 font-medium">
                     <div className="flex justify-between">
                       <span>Total Fee:</span>
-                      <span>₹{student.totalFee.toLocaleString()}</span>
+                      <span>₹{(student.totalFee || 0).toLocaleString()}</span>
                     </div>
                   </div>
                 </div>
@@ -443,11 +470,11 @@ const StudentList = ({ refreshTrigger, onEditStudent, onStudentDeleted, mode = '
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span>Total Paid:</span>
-                    <span>₹{student.totalFeePaid.toLocaleString()}</span>
+                    <span>₹{(student.totalFeePaid || 0).toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-red-700">
                     <span>Balance:</span>
-                    <span>₹{pendingFees.totalBalance.toLocaleString()}</span>
+                    <span>₹{(pendingFees?.totalBalance || 0).toLocaleString()}</span>
                   </div>
                 </div>
               </div>

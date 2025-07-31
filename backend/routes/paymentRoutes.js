@@ -8,7 +8,7 @@ import {
   getScreenshot,
   upload
 } from '../controllers/paymentController.js';
-import { verifyParentToken, verifyTeacherToken, verifyAdminToken } from '../middleware/authMiddleware.js';
+import { verifyParentToken, verifyAdminToken } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 

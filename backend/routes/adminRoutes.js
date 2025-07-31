@@ -2,10 +2,7 @@ import express from 'express';
 import { 
   adminLogin, 
   verifyAdminToken as verifyTokenController, 
-  adminLogout,
-  getTeacherRequests,
-  approveTeacher,
-  rejectTeacher
+  adminLogout
 } from '../controllers/adminAuthController.js';
 import { getAdminAdmissions, getAdmissionStats, getDebugAdmissions } from '../controllers/admissionController.js';
 import { getAdminStudents } from '../controllers/studentController.js';
@@ -17,12 +14,15 @@ import {
 import {
   addStudent,
   getStudents,
-  createExamConfig,
-  getExamConfigs,
-  getSubjectsForClass,
-  updateExamConfig,
-  deleteExamConfig
+
 } from '../controllers/adminController.js';
+import {
+  getStudentsWithFees,
+  updateStudentFees,
+  recordOfflinePayment,
+  getStudentPaymentHistory,
+  getFeeStatistics
+} from '../controllers/feeController.js';
 import { 
   setClassFee,
   setBusRouteFee,
@@ -62,7 +62,7 @@ router.get('/admissions/debug', verifyAdminToken, getDebugAdmissions);
 // GET /api/admin/students - Get filtered students for dashboard
 router.get('/students', verifyAdminToken, getAdminStudents);
 
-// Teacher routes removed - functionality moved to admin-only management
+// Admin-only management - no teacher functionality needed
 
 // ===== STUDENT MANAGEMENT ROUTES =====
 // GET /api/admin/next-sr-number - Get next available SR number
@@ -184,21 +184,7 @@ router.post('/add-student', verifyAdminToken, addStudent);
 // GET /api/admin/students-list - Get students list (moved to adminController)
 router.get('/students-list', verifyAdminToken, getStudents);
 
-// ===== EXAM CONFIGURATION ROUTES =====
-// POST /api/admin/exam-setup - Create exam configuration
-router.post('/exam-setup', verifyAdminToken, createExamConfig);
 
-// GET /api/admin/exam-configs - Get exam configurations
-router.get('/exam-configs', verifyAdminToken, getExamConfigs);
-
-// GET /api/admin/subjects - Get subjects for class and medium
-router.get('/subjects', verifyAdminToken, getSubjectsForClass);
-
-// PUT /api/admin/exam-setup/:id - Update exam configuration
-router.put('/exam-setup/:id', verifyAdminToken, updateExamConfig);
-
-// DELETE /api/admin/exam-setup/:id - Delete exam configuration
-router.delete('/exam-setup/:id', verifyAdminToken, deleteExamConfig);
 
 // GET /api/admin/dashboard-stats - Get comprehensive dashboard statistics
 router.get('/dashboard-stats', verifyAdminToken, getAdminStats);
@@ -212,18 +198,25 @@ router.get('/audit-stats', verifyAdminToken, getAuditStats);
 // GET /api/admin/stats - Get admission statistics (legacy)
 router.get('/stats', verifyAdminToken, getAdmissionStats);
 
-// ===== TEACHER MANAGEMENT ROUTES =====
-// GET /api/admin/teacher-requests - Get all teacher requests
-router.get('/teacher-requests', verifyAdminToken, getTeacherRequests);
 
-// PATCH /api/admin/approve-teacher/:id - Approve teacher request
-router.patch('/approve-teacher/:id', verifyAdminToken, approveTeacher);
-
-// PATCH /api/admin/reject-teacher/:id - Reject teacher request
-router.patch('/reject-teacher/:id', verifyAdminToken, rejectTeacher);
 
 
 // ===== FEE MANAGEMENT ROUTES =====
+// GET /api/admin/students/fees - Get students with fee details for management
+router.get('/students/fees', verifyAdminToken, getStudentsWithFees);
+
+// PUT /api/admin/students/:id/fees - Update student fee details
+router.put('/students/:id/fees', verifyAdminToken, updateStudentFees);
+
+// POST /api/admin/students/:id/payment - Record offline payment
+router.post('/students/:id/payment', verifyAdminToken, recordOfflinePayment);
+
+// GET /api/admin/students/:id/payments - Get student payment history
+router.get('/students/:id/payments', verifyAdminToken, getStudentPaymentHistory);
+
+// GET /api/admin/fees/stats - Get fee statistics
+router.get('/fees/stats', verifyAdminToken, getFeeStatistics);
+
 // POST /api/admin/set-class-fee - Set/Update class fee
 router.post('/set-class-fee', verifyAdminToken, setClassFee);
 
@@ -487,7 +480,6 @@ router.post('/debug/clear-all-data', async (req, res) => {
     const Student = (await import('../models/Student.js')).default;
     const ClassFee = (await import('../models/ClassFee.js')).default;
     const BusRoute = (await import('../models/BusRoute.js')).default;
-    const Teacher = (await import('../models/Teacher.js')).default;
     const Admission = (await import('../models/Admission.js')).default;
     const PaymentRequest = (await import('../models/PaymentRequest.js')).default;
     const Announcement = (await import('../models/Announcement.js')).default;
@@ -499,7 +491,6 @@ router.post('/debug/clear-all-data', async (req, res) => {
     const studentsDeleted = await Student.deleteMany({});
     const classFeeDeleted = await ClassFee.deleteMany({});
     const busRouteDeleted = await BusRoute.deleteMany({});
-    const teachersDeleted = await Teacher.deleteMany({});
     const admissionsDeleted = await Admission.deleteMany({});
     const paymentsDeleted = await PaymentRequest.deleteMany({});
     const announcementsDeleted = await Announcement.deleteMany({});
@@ -514,7 +505,7 @@ router.post('/debug/clear-all-data', async (req, res) => {
         students: studentsDeleted.deletedCount,
         classFees: classFeeDeleted.deletedCount,
         busRoutes: busRouteDeleted.deletedCount,
-        teachers: teachersDeleted.deletedCount,
+
         admissions: admissionsDeleted.deletedCount,
         payments: paymentsDeleted.deletedCount,
         announcements: announcementsDeleted.deletedCount,
@@ -531,66 +522,6 @@ router.post('/debug/clear-all-data', async (req, res) => {
   }
 });
 
-// Create test teacher for debugging
-router.post('/debug/create-test-teacher', async (req, res) => {
-  try {
-    const Teacher = (await import('../models/Teacher.js')).default;
-    const bcryptjs = (await import('bcryptjs')).default;
 
-    // Check if test teacher already exists
-    const existingTeacher = await Teacher.findOne({ mobile: '9999999999' });
-    if (existingTeacher) {
-      return res.json({
-        success: true,
-        message: 'Test teacher already exists',
-        data: {
-          teacher: existingTeacher.getProfileData()
-        }
-      });
-    }
-
-    // Hash password
-    const hashedPassword = await bcryptjs.hash('123456', 12);
-
-    // Create test teacher
-    const teacherData = {
-      fullName: 'Test Teacher',
-      mobile: '9999999999',
-      email: 'test.teacher@school.com',
-      password: hashedPassword,
-      classTeacherOf: 'Class 12 Science',
-      medium: 'Hindi',
-      address: 'Test Address, Test City',
-      qualification: 'B.Ed',
-      isApproved: true,
-      isActive: true,
-      approvedBy: 'Admin',
-      approvedAt: new Date()
-    };
-
-    const teacher = new Teacher(teacherData);
-    await teacher.save();
-
-    res.json({
-      success: true,
-      message: 'Test teacher created successfully!',
-      data: {
-        teacher: teacher.getProfileData(),
-        loginCredentials: {
-          mobile: '9999999999',
-          password: '123456'
-        }
-      }
-    });
-
-  } catch (error) {
-    console.error('Error creating test teacher:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message,
-      message: 'Failed to create test teacher'
-    });
-  }
-});
 
 export default router; 

@@ -37,6 +37,7 @@ const AdminStudentCreateForm = ({ onStudentCreated, onCancel }) => {
     busRoute: '',
     subjects: [],
     classFee: 0,
+    classFeeDiscount: 0,
     busFee: 0,
     totalFee: 0,
     feeStatus: 'Unpaid'
@@ -87,11 +88,12 @@ const AdminStudentCreateForm = ({ onStudentCreated, onCancel }) => {
     }
   }, [formData.class, formData.medium]);
 
-  // Calculate total fee when class fee or bus fee changes
+  // Calculate total fee when class fee, discount, or bus fee changes
   useEffect(() => {
-    const total = formData.classFee + (formData.hasBus ? formData.busFee : 0);
+    const discountedClassFee = Math.max(0, formData.classFee - (formData.classFeeDiscount || 0));
+    const total = discountedClassFee + (formData.hasBus ? formData.busFee : 0);
     setFormData(prev => ({ ...prev, totalFee: total }));
-  }, [formData.classFee, formData.busFee, formData.hasBus]);
+  }, [formData.classFee, formData.classFeeDiscount, formData.busFee, formData.hasBus]);
 
   const fetchNextSRNumber = async () => {
     try {
@@ -251,6 +253,7 @@ const AdminStudentCreateForm = ({ onStudentCreated, onCancel }) => {
           busRoute: '',
           subjects: [],
           classFee: 0,
+          classFeeDiscount: 0,
           busFee: 0,
           totalFee: 0,
           feeStatus: 'Unpaid'
@@ -377,12 +380,12 @@ const AdminStudentCreateForm = ({ onStudentCreated, onCancel }) => {
                   value={formData.srNumber}
                   onChange={handleInputChange}
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  placeholder="Enter SR Number (e.g., SR2025001)"
+                  placeholder="Enter any SR Number format"
                   required
                 />
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                Format: SR{new Date().getFullYear()}001, SR{new Date().getFullYear()}002, etc.
+                You can enter any format for SR Number as per your state requirements
               </p>
             </div>
 
@@ -656,10 +659,38 @@ const AdminStudentCreateForm = ({ onStudentCreated, onCancel }) => {
             Fee Information / फीस जानकारी
           </h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Discount Input */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Class Fee Discount / कक्षा फीस छूट
+            </label>
+            <div className="relative max-w-xs">
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">₹</span>
+              <input
+                type="number"
+                name="classFeeDiscount"
+                value={formData.classFeeDiscount}
+                onChange={handleInputChange}
+                min="0"
+                max={formData.classFee}
+                className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                placeholder="0"
+              />
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              Enter discount amount (maximum: ₹{formData.classFee.toLocaleString()})
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="bg-white p-4 rounded-lg border">
-              <div className="text-sm text-gray-600 mb-1">Class Fee / कक्षा फीस</div>
+              <div className="text-sm text-gray-600 mb-1">Original Class Fee / मूल कक्षा फीस</div>
               <div className="text-2xl font-bold text-blue-600">₹{formData.classFee.toLocaleString()}</div>
+            </div>
+
+            <div className="bg-white p-4 rounded-lg border">
+              <div className="text-sm text-gray-600 mb-1">Discount / छूट</div>
+              <div className="text-2xl font-bold text-red-600">-₹{(formData.classFeeDiscount || 0).toLocaleString()}</div>
             </div>
 
             <div className="bg-white p-4 rounded-lg border">
@@ -669,11 +700,20 @@ const AdminStudentCreateForm = ({ onStudentCreated, onCancel }) => {
               </div>
             </div>
 
-            <div className="bg-white p-4 rounded-lg border">
-              <div className="text-sm text-gray-600 mb-1">Total Fee / कुल फीस</div>
+            <div className="bg-white p-4 rounded-lg border border-purple-200 bg-purple-50">
+              <div className="text-sm text-purple-600 mb-1 font-medium">Final Total Fee / अंतिम कुल फीस</div>
               <div className="text-2xl font-bold text-purple-600">₹{formData.totalFee.toLocaleString()}</div>
             </div>
           </div>
+
+          {/* Fee Breakdown */}
+          {formData.classFeeDiscount > 0 && (
+            <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <div className="text-sm text-green-800">
+                <strong>Fee Breakdown:</strong> Original Class Fee (₹{formData.classFee.toLocaleString()}) - Discount (₹{formData.classFeeDiscount.toLocaleString()}) + Bus Fee (₹{formData.hasBus ? formData.busFee.toLocaleString() : 0}) = <strong>₹{formData.totalFee.toLocaleString()}</strong>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Additional Information */}

@@ -134,6 +134,17 @@ const studentSchema = new mongoose.Schema({
       required: [true, 'Class fee is required'],
       min: [0, 'Class fee cannot be negative']
     },
+    discount: {
+      type: Number,
+      default: 0,
+      min: [0, 'Class fee discount cannot be negative']
+    },
+    discountedTotal: {
+      type: Number,
+      default: function() {
+        return Math.max(0, (this.classFee.total || 0) - (this.classFee.discount || 0));
+      }
+    },
     paid: {
       type: Number,
       default: 0,
@@ -142,7 +153,7 @@ const studentSchema = new mongoose.Schema({
     pending: {
       type: Number,
       default: function() {
-        return this.classFee.total - this.classFee.paid;
+        return Math.max(0, this.classFee.discountedTotal - this.classFee.paid);
       }
     }
   },
@@ -205,6 +216,11 @@ const studentSchema = new mongoose.Schema({
   createdBy: {
     type: String,
     required: [true, 'Created by admin is required'],
+    default: 'admin@saraswatischool'
+  },
+  createdByName: {
+    type: String,
+    required: [true, 'Created by admin name is required'],
     default: 'Admin'
   },
   notes: {
@@ -238,19 +254,22 @@ studentSchema.index({ postalCode: 1 });
 studentSchema.pre('save', function(next) {
   // Ensure classFee and busFee objects exist
   if (!this.classFee) {
-    this.classFee = { total: 0, paid: 0, pending: 0 };
+    this.classFee = { total: 0, discount: 0, discountedTotal: 0, paid: 0, pending: 0 };
   }
   
   if (!this.busFee) {
     this.busFee = { total: 0, paid: 0, pending: 0 };
   }
   
+  // Calculate discounted class fee
+  this.classFee.discountedTotal = Math.max(0, (this.classFee.total || 0) - (this.classFee.discount || 0));
+  
   // Calculate pending amounts
-  this.classFee.pending = Math.max(0, (this.classFee.total || 0) - (this.classFee.paid || 0));
+  this.classFee.pending = Math.max(0, this.classFee.discountedTotal - (this.classFee.paid || 0));
   this.busFee.pending = Math.max(0, (this.busFee.total || 0) - (this.busFee.paid || 0));
   
-  // Calculate total fees
-  this.totalFee = (this.classFee.total || 0) + (this.busFee.total || 0);
+  // Calculate total fees (using discounted class fee)
+  this.totalFee = this.classFee.discountedTotal + (this.busFee.total || 0);
   this.totalFeePaid = (this.classFee.paid || 0) + (this.busFee.paid || 0);
   
   // Update fee status
@@ -265,25 +284,17 @@ studentSchema.pre('save', function(next) {
   next();
 });
 
-// Static method to generate next SR number
+// Static method to generate next SR number (flexible format)
 studentSchema.statics.generateSRNumber = async function() {
   const currentYear = new Date().getFullYear();
-  const prefix = `SR${currentYear}`;
   
-  // Find the latest SR number for current year
-  const latestStudent = await this.findOne({
-    srNumber: { $regex: `^${prefix}` }
-  }).sort({ srNumber: -1 });
+  // Count total students to generate a simple sequential number
+  const totalStudents = await this.countDocuments({});
+  const nextNumber = totalStudents + 1;
   
-  let nextNumber = 1;
-  if (latestStudent) {
-    const lastNumber = parseInt(latestStudent.srNumber.substring(6));
-    nextNumber = lastNumber + 1;
-  }
-  
-  // Pad with zeros to make it 3 digits
+  // Generate a suggested format that users can modify as needed
   const paddedNumber = nextNumber.toString().padStart(3, '0');
-  return `${prefix}${paddedNumber}`;
+  return `SR${currentYear}${paddedNumber}`;
 };
 
 // Static method to get student statistics

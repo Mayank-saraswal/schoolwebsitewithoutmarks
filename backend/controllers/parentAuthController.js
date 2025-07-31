@@ -167,7 +167,9 @@ export const getStudentFees = async (req, res) => {
     }
 
     // Safely extract fee data with fallbacks
-    const classFeeTotal = Number(student.classFee?.total || 0);
+    const classFeeOriginal = Number(student.classFee?.total || 0);
+    const classFeeDiscount = Number(student.classFee?.discount || 0);
+    const classFeeTotal = Number(student.classFee?.discountedTotal || classFeeOriginal);
     const classFeePaid = Number(student.classFee?.paid || 0);
     const busFeeTotal = Number(student.busFee?.total || 0);
     const busFeePaid = Number(student.busFee?.paid || 0);
@@ -182,6 +184,8 @@ export const getStudentFees = async (req, res) => {
         class: student.class
       },
       classFee: {
+        originalTotal: classFeeOriginal,
+        discount: classFeeDiscount,
         total: classFeeTotal,
         paid: classFeePaid,
         pending: classFeeBalance,

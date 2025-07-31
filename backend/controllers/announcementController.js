@@ -4,7 +4,7 @@ import Announcement from '../models/Announcement.js';
 export const createAnnouncement = async (req, res) => {
   try {
     const { title, description, year, medium, visibility } = req.body;
-    const admin = req.teacher; // Admin is authenticated as teacher
+    const admin = req.admin; // Admin is authenticated
 
     // Validation
     if (!title || !description || !year || !medium || !visibility) {
@@ -260,7 +260,7 @@ export const getAnnouncementById = async (req, res) => {
 export const deleteAnnouncement = async (req, res) => {
   try {
     const { id } = req.params;
-    const admin = req.teacher; // Admin is authenticated as teacher
+    const admin = req.admin; // Admin is authenticated
 
     const announcement = await Announcement.findOne({
       _id: id,
